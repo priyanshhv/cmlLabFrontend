@@ -1,310 +1,7 @@
 
 
-// // // components/PublicationForm.jsx
-// // import React, { useState, useEffect } from 'react';
-// // import { TextField, Button, Box, Typography, Grid, Card, CardContent } from '@mui/material';
-// // import axiosInstance from '../axiosInstance';
-// // import { API_BASE_URL } from '../config';
+// PublicationForm.jsx
 
-// // const PublicationForm = () => {
-// //     const [title, setTitle] = useState('');
-// //     const [summary, setSummary] = useState('');
-// //     const [doi, setDoi] = useState('');
-// //     const [coverImage, setCoverImage] = useState(null);
-// //     const [teamMembers, setTeamMembers] = useState([]);
-// //     const [selectedAuthors, setSelectedAuthors] = useState([]);
-// //     const [addingAuthor, setAddingAuthor] = useState([]); // Track adding author state
-
-// //     // Fetch team members and their details
-// //     useEffect(() => {
-// //         const fetchTeamMembers = async () => {
-// //             try {
-// //                 const token = localStorage.getItem('token'); // Fetch token from localStorage
-// //                 const teamRes = await axiosInstance.get(`${API_BASE_URL}/api/team`, {
-// //                     headers: {
-// //                         Authorization: `Bearer ${token}`,
-// //                     },
-// //                 });
-// //                 const membersWithDetails = await Promise.all(
-// //                     teamRes.data.map(async (member) => {
-// //                         const detailsRes = await axiosInstance.get(`${API_BASE_URL}/api/team/${member.userId}`, {
-// //                             headers: {
-// //                                 Authorization: `Bearer ${token}`,
-// //                             },
-// //                         });
-// //                         return {
-// //                             ...member,
-// //                             details: detailsRes.data,
-// //                         };
-// //                     })
-// //                 );
-// //                 setTeamMembers(membersWithDetails);
-// //             } catch (error) {
-// //                 console.error('Failed to fetch team members or their details', error);
-// //             }
-// //         };
-// //         fetchTeamMembers();
-// //     }, []);
-
-// //     const handleAddAuthor = (userId) => {
-// //         if (!selectedAuthors.includes(userId)) {
-// //             setSelectedAuthors((prev) => [...prev, userId]);
-// //         }
-// //     };
-
-// //     const handleRemoveAuthor = (userId) => {
-// //         setSelectedAuthors((prev) => prev.filter((id) => id !== userId));
-// //     };
-
-// //     const handleSubmit = async () => {
-// //         const token = localStorage.getItem('token'); // Fetch token from localStorage
-// //         const formData = new FormData();
-// //         formData.append('title', title);
-// //         formData.append('summary', summary);
-// //         formData.append('doi', doi);
-// //         formData.append('coverImage', coverImage);
-// //         selectedAuthors.forEach((author) => formData.append('authors[]', author)); // Append each author separately
-
-// //         try {
-// //             await axiosInstance.post(`${API_BASE_URL}/api/publications`, formData, {
-// //                 headers: {
-// //                     'Content-Type': 'multipart/form-data',
-// //                     Authorization: `Bearer ${token}`, // Include token in the request header
-// //                 },
-// //             });
-// //             alert('Publication added successfully');
-// //         } catch (error) {
-// //             console.error(error.response?.data || error.message);
-// //         }
-// //     };
-
-// //     return (
-// //         <Box>
-// //             <Typography variant="h4" sx={{ mb: 3 }}>Add Publication</Typography>
-// //             <TextField label="Title" value={title} onChange={(e) => setTitle(e.target.value)} fullWidth sx={{ mb: 2 }} />
-// //             <TextField label="Summary" value={summary} onChange={(e) => setSummary(e.target.value)} fullWidth sx={{ mb: 2 }} />
-// //             <TextField label="DOI" value={doi} onChange={(e) => setDoi(e.target.value)} fullWidth sx={{ mb: 2 }} />
-// //             <Button
-// //                 variant="contained"
-// //                 component="label"
-// //                 sx={{ mb: 2 }}
-// //             >
-// //                 Upload Cover Image
-// //                 <input
-// //                     type="file"
-// //                     hidden
-// //                     onChange={(e) => setCoverImage(e.target.files[0])}
-// //                 />
-// //             </Button>
-
-// //             <Typography variant="h6" sx={{ mt: 3, mb: 2 }}>Select Authors</Typography>
-// //             <Grid container spacing={2}>
-// //                 {teamMembers.map((member) => (
-// //                     <Grid item xs={12} sm={6} md={4} key={member.userId}>
-// //                         <Card>
-// //                             <CardContent>
-// //                                 <Typography variant="h6">{member.details.teamMember.name}</Typography>
-// //                                 <Typography variant="body2" color="textSecondary">
-// //                                     {member.details.teamMember.role}
-// //                                 </Typography>
-                               
-// //                                 {selectedAuthors.includes(member.userId) ? (
-// //                                     <Button
-// //                                         variant="outlined"
-// //                                         color="error"
-// //                                         onClick={() => handleRemoveAuthor(member.userId)}
-// //                                     >
-// //                                         Remove
-// //                                     </Button>
-// //                                 ) : (
-// //                                     <Button
-// //                                         variant="contained"
-// //                                         onClick={() => handleAddAuthor(member.userId)}
-// //                                     >
-// //                                         Add
-// //                                     </Button>
-// //                                 )}
-// //                             </CardContent>
-// //                         </Card>
-// //                     </Grid>
-// //                 ))}
-// //             </Grid>
-
-// //             <Button variant="contained" onClick={handleSubmit} sx={{ mt: 3 }}>Submit</Button>
-// //         </Box>
-// //     );
-// // };
-
-// // export default PublicationForm;
-
-// import React, { useState, useEffect } from 'react';
-// import { TextField, Button, Box, Typography, Grid, Card, CardContent, Avatar } from '@mui/material';
-// import axiosInstance from '../axiosInstance';
-// import { API_BASE_URL } from '../config';
-
-// const PublicationForm = () => {
-//     const [title, setTitle] = useState('');
-//     const [summary, setSummary] = useState('');
-//     const [doi, setDoi] = useState('');
-//     const [coverImage, setCoverImage] = useState(null);
-//     const [preview, setPreview] = useState(null); // Store the cover image preview URL
-//     const [teamMembers, setTeamMembers] = useState([]);
-//     const [selectedAuthors, setSelectedAuthors] = useState([]);
-
-//     // Fetch team members and their details
-//     useEffect(() => {
-//         const fetchTeamMembers = async () => {
-//             try {
-//                 const token = localStorage.getItem('token'); // Fetch token from localStorage
-//                 const teamRes = await axiosInstance.get(`${API_BASE_URL}/api/team`, {
-//                     headers: {
-//                         Authorization: `Bearer ${token}`,
-//                     },
-//                 });
-//                 const membersWithDetails = await Promise.all(
-//                     teamRes.data.map(async (member) => {
-//                         const detailsRes = await axiosInstance.get(`${API_BASE_URL}/api/team/${member.userId}`, {
-//                             headers: {
-//                                 Authorization: `Bearer ${token}`,
-//                             },
-//                         });
-//                         return {
-//                             ...member,
-//                             details: detailsRes.data,
-//                         };
-//                     })
-//                 );
-//                 setTeamMembers(membersWithDetails);
-//             } catch (error) {
-//                 console.error('Failed to fetch team members or their details', error);
-//             }
-//         };
-//         fetchTeamMembers();
-//     }, []);
-
-//     const handleAddAuthor = (userId) => {
-//         if (!selectedAuthors.includes(userId)) {
-//             setSelectedAuthors((prev) => [...prev, userId]);
-//         }
-//     };
-
-//     const handleRemoveAuthor = (userId) => {
-//         setSelectedAuthors((prev) => prev.filter((id) => id !== userId));
-//     };
-
-//     const handleImageChange = (e) => {
-//         const file = e.target.files[0];
-//         if (file) {
-//             setCoverImage(file);
-//             setPreview(URL.createObjectURL(file)); // Create a preview URL for the image
-//         }
-//     };
-
-//     const handleSubmit = async () => {
-//         const token = localStorage.getItem('token'); // Fetch token from localStorage
-//         const formData = new FormData();
-//         formData.append('title', title);
-//         formData.append('summary', summary);
-//         formData.append('doi', doi);
-//         formData.append('coverImage', coverImage);
-//         selectedAuthors.forEach((author) => formData.append('authors[]', author)); // Append each author separately
-
-//         try {
-//             await axiosInstance.post(`${API_BASE_URL}/api/publications`, formData, {
-//                 headers: {
-//                     'Content-Type': 'multipart/form-data',
-//                     Authorization: `Bearer ${token}`, // Include token in the request header
-//                 },
-//             });
-//             alert('Publication added successfully');
-//         } catch (error) {
-//             console.error(error.response?.data || error.message);
-//         }
-//     };
-
-//     return (
-//         <Box>
-//             <Typography variant="h4" sx={{ mb: 3 }}>Add Publication</Typography>
-//             <TextField label="Title" value={title} onChange={(e) => setTitle(e.target.value)} fullWidth sx={{ mb: 2 }} />
-//             <TextField label="Summary" value={summary} onChange={(e) => setSummary(e.target.value)} fullWidth sx={{ mb: 2 }} />
-//             <TextField label="DOI" value={doi} onChange={(e) => setDoi(e.target.value)} fullWidth sx={{ mb: 2 }} />
-//             <Box
-//                 sx={{
-//                     display: 'flex',
-//                     flexDirection: 'column',
-//                     alignItems: 'center',
-//                     justifyContent: 'center',
-//                     py: 2,
-//                 }}
-//             >
-//                 <Button
-//                     variant="contained"
-//                     component="label"
-//                     sx={{ mb: 2, display: 'block' }}
-//                 >
-//                     Upload Cover Image
-//                     <input
-//                         type="file"
-//                         hidden
-//                         accept="image/*"
-//                         onChange={handleImageChange}
-//                     />
-//                 </Button>
-//                 {preview && (
-//                     <Avatar
-//                         src={preview}
-//                         alt="Preview"
-//                         sx={{ width: 100, height: 100, mb: 2 }}
-//                     />
-//                 )}
-//             </Box>
-
-//             <Typography variant="h6" sx={{ mt: 3, mb: 2 }}>Select Authors</Typography>
-//             <Grid container spacing={2}>
-//                 {teamMembers.map((member) => (
-//                     <Grid item xs={12} sm={6} md={4} key={member.userId}>
-//                         <Card>
-//                             <CardContent>
-//                                   <Box sx={{ display: 'flex', alignItems: 'center',justifyContent:"center", mb: 2 }}>
-//                                                                                                                 <Avatar
-//                                                                                                                     sx={{ width: 100, height: 100, mr: 2 }}
-//                                                                                                                     src={`${API_BASE_URL}/${member.details.teamMember.image || 'default-avatar.jpg'}`}
-//                                                                                                                 /> 
-//                                                                                                             </Box>
-//                                                                                                              <Typography variant="h6" textAlign={"center"}><strong>{member.details.teamMember.name}</strong></Typography>
-//                                 <Typography variant="body2" textAlign={"center"} color="textSecondary">
-//                                     {member.details.teamMember.role}
-//                                 </Typography>
-//                                 <Box textAlign={"center"}>
-//                                 {selectedAuthors.includes(member.userId) ? (
-//                                     <Button
-//                                         variant="outlined"
-//                                         color="error"
-//                                         onClick={() => handleRemoveAuthor(member.userId)}
-//                                     >
-//                                         Remove
-//                                     </Button>
-//                                 ) : (
-//                                     <Button
-//                                         variant="contained"
-//                                         onClick={() => handleAddAuthor(member.userId)}
-//                                     >
-//                                         Add
-//                                     </Button>
-//                                 )}
-//                                 </Box>
-//                             </CardContent>
-//                         </Card>
-//                     </Grid>
-//                 ))}
-//             </Grid>
-
-//             <Button variant="contained" onClick={handleSubmit} sx={{ mt: 3 }}>Submit</Button>
-//         </Box>
-//     );
-// };
-
-// export default PublicationForm;
 import React, { useState, useEffect } from 'react';
 import {
   TextField,
@@ -325,8 +22,14 @@ const PublicationForm = () => {
   const [doi, setDoi] = useState('');
   const [coverImage, setCoverImage] = useState(null);
   const [preview, setPreview] = useState(null); // Store the cover image preview URL
+
+  // Existing team-members logic
   const [teamMembers, setTeamMembers] = useState([]);
   const [selectedAuthors, setSelectedAuthors] = useState([]);
+
+  // New: Manage additional authors (unregistered)
+  const [newAdditionalAuthor, setNewAdditionalAuthor] = useState('');
+  const [additionalAuthors, setAdditionalAuthors] = useState([]);
 
   // Fetch team members and their details
   useEffect(() => {
@@ -362,6 +65,7 @@ const PublicationForm = () => {
     fetchTeamMembers();
   }, []);
 
+  // Handle addition/removal of registered authors
   const handleAddAuthor = (userId) => {
     if (!selectedAuthors.includes(userId)) {
       setSelectedAuthors((prev) => [...prev, userId]);
@@ -372,6 +76,7 @@ const PublicationForm = () => {
     setSelectedAuthors((prev) => prev.filter((id) => id !== userId));
   };
 
+  // Handle cover image change
   const handleImageChange = (e) => {
     const file = e.target.files[0];
     if (file) {
@@ -380,14 +85,41 @@ const PublicationForm = () => {
     }
   };
 
+  // NEW: Handle additional (unregistered) authors
+  const handleAddAdditionalAuthor = () => {
+    if (newAdditionalAuthor.trim() !== '') {
+      setAdditionalAuthors((prev) => [...prev, newAdditionalAuthor.trim()]);
+      setNewAdditionalAuthor('');
+    }
+  };
+
+  const handleRemoveAdditionalAuthor = (index) => {
+    setAdditionalAuthors((prev) => {
+      const updated = [...prev];
+      updated.splice(index, 1);
+      return updated;
+    });
+  };
+
+  // Handle form submission
   const handleSubmit = async () => {
     const token = localStorage.getItem('token'); // Fetch token from localStorage
     const formData = new FormData();
+
     formData.append('title', title);
     formData.append('summary', summary);
     formData.append('doi', doi);
-    formData.append('coverImage', coverImage);
-    selectedAuthors.forEach((author) => formData.append('authors[]', author)); // Append each author separately
+    if (coverImage) {
+      formData.append('coverImage', coverImage);
+    }
+
+    // Append each selected (registered) author ID
+    selectedAuthors.forEach((author) => formData.append('authors[]', author));
+
+    // Append each additional (unregistered) author
+    additionalAuthors.forEach((author) =>
+      formData.append('additionalAuthors[]', author)
+    );
 
     try {
       await axiosInstance.post(`${API_BASE_URL}/api/publications`, formData, {
@@ -484,9 +216,9 @@ const PublicationForm = () => {
         )}
       </Box>
 
-      {/* Carousel for Selecting Authors */}
+      {/* Carousel for Selecting Registered Authors */}
       <Typography variant="h6" sx={{ mt: 3, mb: 2 }}>
-        Select Authors
+        Select Authors (Registered)
       </Typography>
       <Box sx={{ mb: 3 }}>
         <Slider {...sliderSettings}>
@@ -565,11 +297,53 @@ const PublicationForm = () => {
         </Slider>
       </Box>
 
-      <Button
-        variant="contained"
-        onClick={handleSubmit}
-        sx={{ mt: 3 }}
-      >
+      {/* Additional Authors (Unregistered) */}
+      <Typography variant="h6" sx={{ mt: 3, mb: 2 }}>
+        Additional Authors (Unregistered)
+      </Typography>
+
+      {/* Input field + button to add an unregistered author */}
+      <Box sx={{ display: 'flex', alignItems: 'center', mb: 2 }}>
+        <TextField
+          label="Add an additional author"
+          value={newAdditionalAuthor}
+          onChange={(e) => setNewAdditionalAuthor(e.target.value)}
+          sx={{ mr: 2 }}
+        />
+        <Button variant="contained" onClick={handleAddAdditionalAuthor}>
+          Add
+        </Button>
+      </Box>
+
+      {/* Display list of additional authors */}
+      {additionalAuthors.length > 0 && (
+        <Box sx={{ mb: 3 }}>
+          {additionalAuthors.map((author, index) => (
+            <Box
+              key={index}
+              sx={{
+                display: 'flex',
+                alignItems: 'center',
+                mb: 1
+              }}
+            >
+              <Typography sx={{ mr: 2 }}>
+                {index + 1}. {author}
+              </Typography>
+              <Button
+                variant="outlined"
+                color="error"
+                onClick={() => handleRemoveAdditionalAuthor(index)}
+              >
+                Remove
+              </Button>
+            </Box>
+          ))}
+        </Box>
+      )}
+
+      {/* Submit Button */}
+      <Button variant="contained" onClick={handleSubmit} sx={{ mt: 3 }}>
         Submit
       </Button>
     </Box>

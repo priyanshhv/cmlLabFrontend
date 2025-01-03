@@ -1,3 +1,7 @@
+
+
+// PublicationsSection.jsx
+
 import React, { useEffect, useState } from 'react';
 import {
   Grid,
@@ -6,10 +10,11 @@ import {
   Typography,
   CardMedia,
   Box,
-  Link,
+  Link as MuiLink,
   Skeleton
 } from '@mui/material';
 import Carousel from 'react-material-ui-carousel';
+import { Link } from 'react-router-dom'; // For clickable user links
 import axiosInstance from '../axiosInstance';
 import { API_BASE_URL } from '../config';
 
@@ -21,19 +26,40 @@ const PublicationsSection = () => {
     const fetchPublications = async () => {
       try {
         const res = await axiosInstance.get(`${API_BASE_URL}/api/publications`);
+
+        // Transform each publication to retrieve:
+        //   1) Registered authors (user objects with userId, name)
+        //   2) Unregistered (additional) authors (plain strings)
         const publicationsWithAuthors = await Promise.all(
           res.data.map(async (pub) => {
-            const authors = await Promise.all(
-              pub.authors.map(async (authorId) => {
+            // Safely handle potentially undefined or null arrays
+            const pubAuthors = Array.isArray(pub.authors) ? pub.authors : [];
+            const pubAdditional = Array.isArray(pub.additionalAuthors)
+              ? pub.additionalAuthors
+              : [];
+
+            // Fetch details for each registered author
+            const registeredAuthorsDetails = await Promise.all(
+              pubAuthors.map(async (authorId) => {
                 const authorRes = await axiosInstance.get(
                   `${API_BASE_URL}/api/team/${authorId}`
                 );
-                return authorRes.data.teamMember.name;
+                return {
+                  userId: authorId,
+                  name: authorRes.data.teamMember.name
+                };
               })
             );
-            return { ...pub, authorNames: authors };
+
+            // Return a unified object including both author types
+            return {
+              ...pub,
+              registeredAuthors: registeredAuthorsDetails, // array of { userId, name }
+              unregisteredAuthors: pubAdditional           // array of strings
+            };
           })
         );
+
         setPublications(publicationsWithAuthors);
       } catch (error) {
         console.error('Failed to fetch publications', error);
@@ -41,8 +67,43 @@ const PublicationsSection = () => {
         setLoading(false);
       }
     };
+
     fetchPublications();
   }, []);
+
+  // Helper function to safely render authors
+  function renderAuthors(registeredAuthors = [], unregisteredAuthors = []) {
+    // Convert registered authors to clickable links
+    const registeredEls = registeredAuthors.map((author, idx) => (
+      <React.Fragment key={author.userId}>
+        {idx > 0 && ', '} {/* Add a comma if not the first registered author */}
+        <MuiLink
+          component={Link}
+          to={`/users/${author.userId}`}
+          underline="hover"
+          sx={{ color: 'inherit', fontWeight: 'bold' }}
+        >
+          {author.name}
+        </MuiLink>
+      </React.Fragment>
+    ));
+
+    // Convert unregistered authors to plain text
+    const unregisteredEls = unregisteredAuthors.map((authorName, idx) => {
+      // Add a comma if there's already at least one registered author
+      // or if this is not the first unregistered author
+      const shouldAddComma = registeredAuthors.length > 0 || idx > 0;
+      return (
+        <React.Fragment key={`unreg-${idx}`}>
+          {shouldAddComma && ', '}
+          {authorName}
+        </React.Fragment>
+      );
+    });
+
+    // Combine both arrays into a single comma-separated list
+    return [...registeredEls, ...unregisteredEls];
+  }
 
   return (
     <Box sx={{ py: 5, px: 3 }}>
@@ -68,14 +129,14 @@ const PublicationsSection = () => {
         >
           <Carousel
             autoPlay
-            interval={5000}            // 5 seconds per slide
+            interval={5000}         // 5 seconds per slide
             indicators
             swipe
             cycleNavigation
-            navButtonsAlwaysVisible    // Show nav buttons at all times
+            navButtonsAlwaysVisible // Show nav buttons at all times
             fullHeightHover={false}
-            animation="slide"          // or "fade"
-            duration={1200}            // 1.2s transition for extra smoothness
+            animation="slide"
+            duration={1200}         // 1.2s transition for extra smoothness
           >
             {publications.map((pub) => (
               <Card key={pub._id}>
@@ -89,7 +150,7 @@ const PublicationsSection = () => {
                   image={`${API_BASE_URL}/${pub.coverImage}`}
                   alt={pub.title}
                   onError={(e) => {
-                    e.target.src = '/default-cover.jpg'; // Fallback image
+                    e.target.src = '/default-cover.jpg'; // fallback image
                   }}
                 />
                 <CardContent>
@@ -99,12 +160,23 @@ const PublicationsSection = () => {
                   <Typography variant="body2" color="textSecondary" sx={{ mb: 1 }}>
                     {pub.summary}
                   </Typography>
+
                   <Typography variant="body2" color="textSecondary" sx={{ mb: 1 }}>
-                    <strong>Authors:</strong> {pub.authorNames?.join(', ') || 'Unknown'}
+                    <strong>Authors: </strong>
+                    {renderAuthors(pub.registeredAuthors, pub.unregisteredAuthors)}
                   </Typography>
-                  <Link href={pub.doi} target="_blank" rel="noopener noreferrer">
-                    Read Full Article
-                  </Link>
+
+                  {/* If a DOI is present, show a link to the full article */}
+                  {pub.doi && (
+                    <MuiLink
+                      href={pub.doi}
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      underline="hover"
+                    >
+                      Read Full Article
+                    </MuiLink>
+                  )}
                 </CardContent>
               </Card>
             ))}

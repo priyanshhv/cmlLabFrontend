@@ -19,7 +19,8 @@ const LoginForm = React.lazy(() => import('./components/LoginForm'));
 const RegisterForm = React.lazy(() => import('./components/RegisterForm'));
 const PublicationForm = React.lazy(() => import('./components/PublicationForm'));
 const Footer = React.lazy(() => import('./components/Footer'));
-const UserDetailPage = React.lazy(() => import('./pages/UserDetailPage')); // <-- new line
+const UserDetailPage = React.lazy(() => import('./pages/UserDetailPage')); 
+const PublicationPage = React.lazy(() => import('./pages/PublicationPage')); // <-- new line
 
 
 const App = () => {
@@ -50,6 +51,7 @@ const App = () => {
                     <Route path="/" element={<HomePage />} />
                     <Route path="/login" element={<LoginForm />} />
                      <Route path="/users/:id" element={<UserDetailPage />} />
+                     <Route path="/publication" element={<PublicationPage />} />
                     <Route path="/register" element={<RegisterForm />} />
                     {isLoggedIn && (
                         <>
