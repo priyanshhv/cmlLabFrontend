@@ -20,7 +20,8 @@ const RegisterForm = React.lazy(() => import('./components/RegisterForm'));
 const PublicationForm = React.lazy(() => import('./components/PublicationForm'));
 const Footer = React.lazy(() => import('./components/Footer'));
 const UserDetailPage = React.lazy(() => import('./pages/UserDetailPage')); 
-const PublicationPage = React.lazy(() => import('./pages/PublicationPage')); // <-- new line
+const PublicationPage = React.lazy(() => import('./pages/PublicationPage')); 
+const ResourcePage = React.lazy(() => import('./pages/Resource')); // <-- new line
 
 
 const App = () => {
@@ -52,6 +53,7 @@ const App = () => {
                     <Route path="/login" element={<LoginForm />} />
                      <Route path="/users/:id" element={<UserDetailPage />} />
                      <Route path="/publication" element={<PublicationPage />} />
+                     <Route path="/resource" element={<ResourcePage />} />
                     <Route path="/register" element={<RegisterForm />} />
                     {isLoggedIn && (
                         <>

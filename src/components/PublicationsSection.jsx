@@ -1,7 +1,5 @@
 
 
-// PublicationsSection.jsx
-
 import React, { useEffect, useState } from 'react';
 import {
   Grid,
@@ -14,7 +12,7 @@ import {
   Skeleton
 } from '@mui/material';
 import Carousel from 'react-material-ui-carousel';
-import { Link } from 'react-router-dom'; // For clickable user links
+import { Link } from 'react-router-dom';
 import axiosInstance from '../axiosInstance';
 import { API_BASE_URL } from '../config';
 
@@ -22,23 +20,25 @@ const PublicationsSection = () => {
   const [publications, setPublications] = useState([]);
   const [loading, setLoading] = useState(true);
 
+  // Helper function to truncate summary to 80 words
+  const truncateSummary = (summary) => {
+    const words = summary.split(' ');
+    if (words.length <= 80) return summary;
+    return words.slice(0, 80).join(' ');
+  };
+
   useEffect(() => {
     const fetchPublications = async () => {
       try {
         const res = await axiosInstance.get(`${API_BASE_URL}/api/publications`);
 
-        // Transform each publication to retrieve:
-        //   1) Registered authors (user objects with userId, name)
-        //   2) Unregistered (additional) authors (plain strings)
         const publicationsWithAuthors = await Promise.all(
           res.data.map(async (pub) => {
-            // Safely handle potentially undefined or null arrays
             const pubAuthors = Array.isArray(pub.authors) ? pub.authors : [];
             const pubAdditional = Array.isArray(pub.additionalAuthors)
               ? pub.additionalAuthors
               : [];
 
-            // Fetch details for each registered author
             const registeredAuthorsDetails = await Promise.all(
               pubAuthors.map(async (authorId) => {
                 const authorRes = await axiosInstance.get(
@@ -51,11 +51,10 @@ const PublicationsSection = () => {
               })
             );
 
-            // Return a unified object including both author types
             return {
               ...pub,
-              registeredAuthors: registeredAuthorsDetails, // array of { userId, name }
-              unregisteredAuthors: pubAdditional           // array of strings
+              registeredAuthors: registeredAuthorsDetails,
+              unregisteredAuthors: pubAdditional
             };
           })
         );
@@ -71,12 +70,10 @@ const PublicationsSection = () => {
     fetchPublications();
   }, []);
 
-  // Helper function to safely render authors
   function renderAuthors(registeredAuthors = [], unregisteredAuthors = []) {
-    // Convert registered authors to clickable links
     const registeredEls = registeredAuthors.map((author, idx) => (
       <React.Fragment key={author.userId}>
-        {idx > 0 && ', '} {/* Add a comma if not the first registered author */}
+        {idx > 0 && ', '}
         <MuiLink
           component={Link}
           to={`/users/${author.userId}`}
@@ -88,10 +85,7 @@ const PublicationsSection = () => {
       </React.Fragment>
     ));
 
-    // Convert unregistered authors to plain text
     const unregisteredEls = unregisteredAuthors.map((authorName, idx) => {
-      // Add a comma if there's already at least one registered author
-      // or if this is not the first unregistered author
       const shouldAddComma = registeredAuthors.length > 0 || idx > 0;
       return (
         <React.Fragment key={`unreg-${idx}`}>
@@ -101,7 +95,6 @@ const PublicationsSection = () => {
       );
     });
 
-    // Combine both arrays into a single comma-separated list
     return [...registeredEls, ...unregisteredEls];
   }
 
@@ -120,7 +113,6 @@ const PublicationsSection = () => {
           ))}
         </Grid>
       ) : (
-        /* Center the carousel container and limit the width to ~60% */
         <Box
           sx={{
             width: { xs: '90%', sm: '80%', md: '60%' },
@@ -129,14 +121,14 @@ const PublicationsSection = () => {
         >
           <Carousel
             autoPlay
-            interval={5000}         // 5 seconds per slide
+            interval={5000}
             indicators
             swipe
             cycleNavigation
-            navButtonsAlwaysVisible // Show nav buttons at all times
+            navButtonsAlwaysVisible
             fullHeightHover={false}
             animation="slide"
-            duration={1200}         // 1.2s transition for extra smoothness
+            duration={1200}
           >
             {publications.map((pub) => (
               <Card key={pub._id}>
@@ -150,7 +142,7 @@ const PublicationsSection = () => {
                   image={`${API_BASE_URL}/${pub.coverImage}`}
                   alt={pub.title}
                   onError={(e) => {
-                    e.target.src = '/default-cover.jpg'; // fallback image
+                    e.target.src = '/default-cover.jpg';
                   }}
                 />
                 <CardContent>
@@ -158,7 +150,21 @@ const PublicationsSection = () => {
                     {pub.title}
                   </Typography>
                   <Typography variant="body2" color="textSecondary" sx={{ mb: 1 }}>
-                    {pub.summary}
+                    {truncateSummary(pub.summary)}
+                    {pub.summary.split(' ').length > 80 && pub.doi && (
+                      <MuiLink
+                        href={pub.doi}
+                        sx={{ 
+                          ml: 1, 
+                          textDecoration: 'none',
+                          '&:hover': {
+                            textDecoration: 'none'
+                          }
+                        }}
+                      >
+                        read more
+                      </MuiLink>
+                    )}
                   </Typography>
 
                   <Typography variant="body2" color="textSecondary" sx={{ mb: 1 }}>
@@ -166,7 +172,6 @@ const PublicationsSection = () => {
                     {renderAuthors(pub.registeredAuthors, pub.unregisteredAuthors)}
                   </Typography>
 
-                  {/* If a DOI is present, show a link to the full article */}
                   {pub.doi && (
                     <MuiLink
                       href={pub.doi}

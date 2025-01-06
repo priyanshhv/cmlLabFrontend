@@ -201,7 +201,7 @@ const Navbar = () => {
   };
 
   // Common links for all users
-  const commonLinks = [{ label: 'Home', path: '/' },{label: 'Publications', path: '/publication'}];
+  const commonLinks = [{ label: 'Home', path: '/' },{label: 'Publications', path: '/publication'},{label:'Resources', path: '/resource'}];
 
   // Auth-specific links for LOGGED-IN users
   const loggedInLinks = [

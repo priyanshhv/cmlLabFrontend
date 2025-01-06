@@ -1,24 +1,17 @@
 
-import React, { useState, useEffect } from 'react';
+
+
+
+import React, { useState } from 'react';
 import {
-  Typography,
-  Box,
-  Grid,
-  MenuItem,
-  Select,
-  FormControl,
-  InputLabel,
-  Button,
-  TextField,
-  Avatar
+  Typography, Box, Grid, MenuItem, Select, FormControl, InputLabel,
+  Button, TextField, Avatar, Alert, Snackbar, CircularProgress
 } from '@mui/material';
 import axios from 'axios';
 import { API_BASE_URL } from '../config';
 
-// We'll define which categories are single-doc vs multi-doc.
 const SINGLE_DOC_CATEGORIES = ['address', 'resourcetext'];
 const MULTI_DOC_CATEGORIES = ['role', 'technology', 'tutorial'];
-
 const CATEGORY_OPTIONS = [
   { value: 'address', label: 'Address' },
   { value: 'role', label: 'Role' },
@@ -26,462 +19,263 @@ const CATEGORY_OPTIONS = [
   { value: 'technology', label: 'Technologies' },
   { value: 'tutorial', label: 'Tutorials' }
 ];
+const MAX_FILE_SIZE = 5 * 1024 * 1024;
 
 export default function Dashboard() {
   const [selectedCategory, setSelectedCategory] = useState('');
   const [existingData, setExistingData] = useState(null);
   const [loading, setLoading] = useState(false);
-
-  // This will hold the user's typed values (JSON fields)
   const [formData, setFormData] = useState({});
-  // This holds the local (pre-submit) image file (if any)
   const [imageFile, setImageFile] = useState(null);
-  // Local preview of the new image file before submit
   const [localPreview, setLocalPreview] = useState(null);
-  // Once we submit and the server returns a new doc, show the updated image
   const [serverImagePreview, setServerImagePreview] = useState(null);
+  const [error, setError] = useState(null);
+  const [formErrors, setFormErrors] = useState({});
+  const [submitLoading, setSubmitLoading] = useState(false);
 
   const token = localStorage.getItem('token');
-
-  /**
-   * Decide if the selected category is single-doc or multi-doc
-   */
   const isSingleDocCategory = SINGLE_DOC_CATEGORIES.includes(selectedCategory);
   const isMultiDocCategory = MULTI_DOC_CATEGORIES.includes(selectedCategory);
 
-  // When the user selects a category from the dropdown
+  const validateField = (name, value) => {
+    if (!value || value.trim() === '') return `${name} is required`;
+    if (value.length < 2) return `${name} must be at least 2 characters`;
+    return null;
+  };
+
+  const validateForm = () => {
+    const errors = {};
+    const requiredFields = {
+      address: ['institution', 'city', 'country'],
+      role: ['roleName'],
+      resourcetext: ['text'],
+      technology: ['name', 'description'],
+      tutorial: ['name', 'description', 'tutorialLink']
+    };
+
+    const fields = requiredFields[selectedCategory] || [];
+    fields.forEach(field => {
+      const error = validateField(field, formData[field]);
+      if (error) errors[field] = error;
+    });
+
+    setFormErrors(errors);
+    return Object.keys(errors).length === 0;
+  };
+
   const handleSelectCategory = async (category) => {
     setSelectedCategory(category);
+    resetForm();
+    if (!category || isMultiDocCategory) return;
 
-    // Clear the states whenever category changes
-    setExistingData(null);
-    setFormData({});
-    setImageFile(null);
-    setLocalPreview(null);
-    setServerImagePreview(null);
-
-    // If no category, stop
-    if (!category) return;
-
-    // If it's a multi-doc category, we do NOT fetch or set existing data
-    // because we can have multiple docs and just want to create new each time.
-    // If it's single-doc (address/resourcetext), we fetch existing data (the first doc).
-    if (isMultiDocCategory) {
-      return;
-    }
-
-    // Single-doc fetch
     setLoading(true);
     try {
+      if (!token) throw new Error('Authentication required');
       const res = await axios.get(`${API_BASE_URL}/api/${category}`, {
-        headers: {
-          Authorization: `Bearer ${token}`
-        }
+        headers: { Authorization: `Bearer ${token}` }
       });
 
-      let data = res.data;
-      if (Array.isArray(data) && data.length > 0) {
-        data = data[0]; // If the server returns an array, pick first
-      } else if (Array.isArray(data) && data.length === 0) {
-        data = null;
-      }
-
+      const data = Array.isArray(res.data) ? res.data[0] || null : res.data;
       setExistingData(data);
       if (data) {
         setFormData(data);
-        // If there's an icon field, show it in server preview (not likely for address/resourcetext)
-        if (data.icon) {
-          setServerImagePreview(`${API_BASE_URL}/uploads/${data.icon}`);
-        }
+        if (data.icon) setServerImagePreview(`${API_BASE_URL}/uploads/${data.icon}`);
       }
     } catch (err) {
-      console.error(`Failed to fetch ${category}:`, err);
+      handleError(err);
     } finally {
       setLoading(false);
     }
   };
 
-  // Generic form field changes
   const handleFormChange = (e) => {
     const { name, value } = e.target;
-    setFormData((prev) => ({ ...prev, [name]: value }));
+    setFormData(prev => ({ ...prev, [name]: value }));
+    if (formErrors[name]) {
+      const error = validateField(name, value);
+      setFormErrors(prev => ({ ...prev, [name]: error }));
+    }
   };
 
-  // Handle local file selection
   const handleFileChange = (e) => {
-    if (e.target.files && e.target.files[0]) {
-      setImageFile(e.target.files[0]);
-      setLocalPreview(URL.createObjectURL(e.target.files[0]));
+    const file = e.target.files[0];
+    if (!file) return;
+
+    if (!file.type.startsWith('image/')) {
+      handleError({ message: 'Please upload an image file' });
+      return;
     }
+
+    if (file.size > MAX_FILE_SIZE) {
+      handleError({ message: 'File size should not exceed 5MB' });
+      return;
+    }
+
+    setImageFile(file);
+    setLocalPreview(URL.createObjectURL(file));
+    setError(null);
   };
 
-  // SUBMIT
   const handleSubmit = async () => {
-    if (!selectedCategory) return;
+    if (!selectedCategory || !validateForm()) return;
 
-    // Some categories require multipart/form-data (technology, tutorial)
-    // because they have icon uploads. Role might be JSON or no file, so let's handle that.
-    // We'll assume "role" is no file. So isFileCategory = technology || tutorial
-    const isFileCategory = selectedCategory === 'technology' || selectedCategory === 'tutorial';
-
+    setSubmitLoading(true);
     try {
-      let response;
+      if (!token) throw new Error('Authentication required');
 
-      // If it's single-doc (address, resourcetext):
-      //   => If there's an existing doc, PATCH. Otherwise, POST.
-      // If it's multi-doc (role, technology, tutorial):
-      //   => Always POST (we want to create a brand new doc every time).
-      const isUpdatingSingleDoc = isSingleDocCategory && existingData && existingData._id;
+      const config = {
+        headers: {
+          Authorization: `Bearer ${token}`,
+          'Content-Type': isFileUploadRequired() ? 'multipart/form-data' : 'application/json'
+        }
+      };
 
-      if (isFileCategory) {
-        // ============ SEND MULTIPART/FORM-DATA ============
-        const dataToSend = new FormData();
+      const data = prepareFormData();
+      const endpoint = getEndpoint();
+      const method = isSingleDocCategory && existingData ? 'patch' : 'post';
 
-        // Append text fields
-        Object.keys(formData).forEach((key) => {
-          dataToSend.append(key, formData[key]);
-        });
-
-        // technology => 'icon', tutorial => 'newIcon'
-        if (imageFile) {
-          if (selectedCategory === 'technology') {
-            dataToSend.append('icon', imageFile);
-          } else {
-            dataToSend.append('newIcon', imageFile);
-          }
-        }
-
-        // Debug
-        console.log('Inspecting FormData contents:');
-        for (let [key, val] of dataToSend.entries()) {
-          console.log(key, val);
-        }
-
-        if (isMultiDocCategory) {
-          // (Role, Technology, Tutorial) => ALWAYS CREATE
-          response = await axios.post(
-            `${API_BASE_URL}/api/${selectedCategory}`,
-            dataToSend,
-            {
-              headers: {
-                'Content-Type': 'multipart/form-data',
-                Authorization: `Bearer ${token}`
-              }
-            }
-          );
-          alert(`${selectedCategory} created successfully!`);
-        } else if (isUpdatingSingleDoc) {
-          // Single-doc + already has an _id => update
-          response = await axios.patch(
-            `${API_BASE_URL}/api/${selectedCategory}/${existingData._id}`,
-            dataToSend,
-            {
-              headers: {
-                'Content-Type': 'multipart/form-data',
-                Authorization: `Bearer ${token}`
-              }
-            }
-          );
-          alert(`${selectedCategory} updated successfully!`);
-        } else {
-          // Single-doc + no doc => create
-          response = await axios.post(
-            `${API_BASE_URL}/api/${selectedCategory}`,
-            dataToSend,
-            {
-              headers: {
-                'Content-Type': 'multipart/form-data',
-                Authorization: `Bearer ${token}`
-              }
-            }
-          );
-          alert(`${selectedCategory} created successfully!`);
-        }
-      } else {
-        // ============ SEND JSON (NO FILES) ============
-        if (isMultiDocCategory) {
-          // For multi-doc categories (Role) we always create
-          response = await axios.post(
-            `${API_BASE_URL}/api/${selectedCategory}`,
-            formData,
-            {
-              headers: {
-                'Content-Type': 'application/json',
-                Authorization: `Bearer ${token}`
-              }
-            }
-          );
-          alert(`${selectedCategory} created successfully!`);
-        } else if (isUpdatingSingleDoc) {
-          // Single doc, has an _id => update
-          response = await axios.patch(
-            `${API_BASE_URL}/api/${selectedCategory}/${existingData._id}`,
-            formData,
-            {
-              headers: {
-                'Content-Type': 'application/json',
-                Authorization: `Bearer ${token}`
-              }
-            }
-          );
-          alert(`${selectedCategory} updated successfully!`);
-        } else {
-          // Single doc, no existing => create
-          response = await axios.post(
-            `${API_BASE_URL}/api/${selectedCategory}`,
-            formData,
-            {
-              headers: {
-                'Content-Type': 'application/json',
-                Authorization: `Bearer ${token}`
-              }
-            }
-          );
-          alert(`${selectedCategory} created successfully!`);
-        }
-      }
-
-      // If the server returns the doc, we can handle the UI
-      if (response && response.data) {
-        // For single-doc categories, we set that doc in state (in case we want to update again)
-        if (isSingleDocCategory) {
-          setExistingData(response.data);
-          setFormData(response.data);
-        }
-        // For multi-doc categories, we probably want to clear the form
-        if (isMultiDocCategory) {
-          setFormData({});
-          setImageFile(null);
-          setLocalPreview(null);
-          setServerImagePreview(null);
-        }
-        // If there's a new icon in the doc
-        if (response.data.icon) {
-          setServerImagePreview(`${API_BASE_URL}/uploads/${response.data.icon}`);
-        }
-      }
+      const response = await axios[method](endpoint, data, config);
+      handleSubmitSuccess(response.data);
     } catch (err) {
-      console.error(err);
-      alert(`Failed to submit ${selectedCategory}: ${err.message}`);
+      handleError(err);
+    } finally {
+      setSubmitLoading(false);
     }
   };
 
-  // Render the input fields depending on the category
+  const isFileUploadRequired = () => ['technology', 'tutorial'].includes(selectedCategory);
+
+  const prepareFormData = () => {
+    if (!isFileUploadRequired()) return formData;
+
+    const data = new FormData();
+    Object.entries(formData).forEach(([key, value]) => {
+      if (value != null) data.append(key, value);
+    });
+    if (imageFile) {
+      data.append(selectedCategory === 'technology' ? 'icon' : 'newIcon', imageFile);
+    }
+    return data;
+  };
+
+  const getEndpoint = () => {
+    const base = `${API_BASE_URL}/api/${selectedCategory}`;
+    return (isSingleDocCategory && existingData) ? `${base}/${existingData._id}` : base;
+  };
+
+  const handleSubmitSuccess = (data) => {
+    if (isSingleDocCategory) {
+      setExistingData(data);
+      setFormData(data);
+    } else {
+      resetForm();
+    }
+    if (data.icon) setServerImagePreview(`${API_BASE_URL}/uploads/${data.icon}`);
+    setError({
+      type: 'success',
+      message: `${selectedCategory} ${existingData ? 'updated' : 'created'} successfully!`
+    });
+  };
+
+  const handleError = (err) => {
+    const message = err.response?.data?.message || err.message || 'An error occurred';
+    setError({ type: 'error', message });
+  };
+
+  const resetForm = () => {
+    setExistingData(null);
+    setFormData({});
+    setImageFile(null);
+    setLocalPreview(null);
+    setServerImagePreview(null);
+    setError(null);
+    setFormErrors({});
+  };
+
   const renderFormFields = () => {
     if (!selectedCategory) return null;
+
+    const renderTextField = (label, name, options = {}) => (
+      <TextField
+        label={label}
+        name={name}
+        value={formData[name] || ''}
+        onChange={handleFormChange}
+        error={!!formErrors[name]}
+        helperText={formErrors[name]}
+        fullWidth
+        sx={{ mb: 2 }}
+        {...options}
+      />
+    );
+
+    const renderImageUpload = () => (
+      <>
+        <Button variant="contained" component="label" sx={{ mb: 2 }}>
+          Upload Icon
+          <input type="file" hidden accept="image/*" onChange={handleFileChange} />
+        </Button>
+
+        {localPreview && (
+          <Box sx={{ mt: 2 }}>
+            <Typography variant="body2">Local preview:</Typography>
+            <Avatar src={localPreview} alt="Local Preview" sx={{ width: 80, height: 80 }} />
+          </Box>
+        )}
+        {serverImagePreview && (
+          <Box sx={{ mt: 2 }}>
+            <Typography variant="body2">Server preview:</Typography>
+            <Avatar src={serverImagePreview} alt="Server Icon" sx={{ width: 80, height: 80 }} />
+          </Box>
+        )}
+      </>
+    );
+
     switch (selectedCategory) {
       case 'address':
         return (
           <Box sx={{ mt: 2 }}>
-            <TextField
-              label="Room"
-              name="room"
-              value={formData.room || ''}
-              onChange={handleFormChange}
-              fullWidth
-              sx={{ mb: 2 }}
-            />
-            <TextField
-              label="Department"
-              name="department"
-              value={formData.department || ''}
-              onChange={handleFormChange}
-              fullWidth
-              sx={{ mb: 2 }}
-            />
-            <TextField
-              label="Institution"
-              name="institution"
-              value={formData.institution || ''}
-              onChange={handleFormChange}
-              fullWidth
-              sx={{ mb: 2 }}
-            />
-            <TextField
-              label="City"
-              name="city"
-              value={formData.city || ''}
-              onChange={handleFormChange}
-              fullWidth
-              sx={{ mb: 2 }}
-            />
-            <TextField
-              label="State"
-              name="state"
-              value={formData.state || ''}
-              onChange={handleFormChange}
-              fullWidth
-              sx={{ mb: 2 }}
-            />
-            <TextField
-              label="Postal Code"
-              name="postalCode"
-              value={formData.postalCode || ''}
-              onChange={handleFormChange}
-              fullWidth
-              sx={{ mb: 2 }}
-            />
-            <TextField
-              label="Country"
-              name="country"
-              value={formData.country || ''}
-              onChange={handleFormChange}
-              fullWidth
-            />
+            {renderTextField('Room', 'room')}
+            {renderTextField('Department', 'department')}
+            {renderTextField('Institution', 'institution')}
+            {renderTextField('City', 'city')}
+            {renderTextField('State', 'state')}
+            {renderTextField('Postal Code', 'postalCode')}
+            {renderTextField('Country', 'country')}
           </Box>
         );
 
       case 'role':
         return (
           <Box sx={{ mt: 2 }}>
-            <TextField
-              label="Role Name"
-              name="roleName"
-              value={formData.roleName || ''}
-              onChange={handleFormChange}
-              fullWidth
-            />
+            {renderTextField('Role Name', 'roleName')}
           </Box>
         );
 
       case 'resourcetext':
         return (
           <Box sx={{ mt: 2 }}>
-            <TextField
-              label="Resource Text"
-              name="text"
-              value={formData.text || ''}
-              onChange={handleFormChange}
-              multiline
-              rows={4}
-              fullWidth
-            />
+            {renderTextField('Resource Text', 'text', { multiline: true, rows: 4 })}
           </Box>
         );
 
       case 'technology':
         return (
           <Box sx={{ mt: 2 }}>
-            <TextField
-              label="Name"
-              name="name"
-              value={formData.name || ''}
-              onChange={handleFormChange}
-              fullWidth
-              sx={{ mb: 2 }}
-            />
-            <TextField
-              label="Description"
-              name="description"
-              value={formData.description || ''}
-              onChange={handleFormChange}
-              multiline
-              rows={3}
-              fullWidth
-              sx={{ mb: 2 }}
-            />
-            <TextField
-              label="Download Link"
-              name="downloadLink"
-              value={formData.downloadLink || ''}
-              onChange={handleFormChange}
-              fullWidth
-              sx={{ mb: 2 }}
-            />
-
-            <Button variant="contained" component="label">
-              Upload Icon
-              <input
-                type="file"
-                hidden
-                accept="image/*"
-                onChange={handleFileChange}
-              />
-            </Button>
-
-            {localPreview && (
-              <Box sx={{ mt: 2 }}>
-                <Typography variant="body2">Local preview (before submit):</Typography>
-                <Avatar
-                  src={localPreview}
-                  alt="Local Preview"
-                  sx={{ width: 80, height: 80 }}
-                />
-              </Box>
-            )}
-            {serverImagePreview && (
-              <Box sx={{ mt: 2 }}>
-                <Typography variant="body2">Server preview (after submit):</Typography>
-                <Avatar
-                  src={serverImagePreview}
-                  alt="Server Icon"
-                  sx={{ width: 80, height: 80 }}
-                />
-              </Box>
-            )}
+            {renderTextField('Name', 'name')}
+            {renderTextField('Description', 'description', { multiline: true, rows: 3 })}
+            {renderTextField('Download Link', 'downloadLink')}
+            {renderImageUpload()}
           </Box>
         );
 
       case 'tutorial':
         return (
           <Box sx={{ mt: 2 }}>
-            <TextField
-              label="Name"
-              name="name"
-              value={formData.name || ''}
-              onChange={handleFormChange}
-              fullWidth
-              sx={{ mb: 2 }}
-            />
-            <TextField
-              label="Description"
-              name="description"
-              value={formData.description || ''}
-              onChange={handleFormChange}
-              multiline
-              rows={3}
-              fullWidth
-              sx={{ mb: 2 }}
-            />
-            <TextField
-              label="Tutorial Link"
-              name="tutorialLink"
-              value={formData.tutorialLink || ''}
-              onChange={handleFormChange}
-              fullWidth
-              sx={{ mb: 2 }}
-            />
-
-            <Button variant="contained" component="label">
-              Upload Icon
-              <input
-                type="file"
-                hidden
-                accept="image/*"
-                onChange={handleFileChange}
-              />
-            </Button>
-
-            {localPreview && (
-              <Box sx={{ mt: 2 }}>
-                <Typography variant="body2">Local preview (before submit):</Typography>
-                <Avatar
-                  src={localPreview}
-                  alt="Local Preview"
-                  sx={{ width: 80, height: 80 }}
-                />
-              </Box>
-            )}
-            {serverImagePreview && (
-              <Box sx={{ mt: 2 }}>
-                <Typography variant="body2">Server preview (after submit):</Typography>
-                <Avatar
-                  src={serverImagePreview}
-                  alt="Server Icon"
-                  sx={{ width: 80, height: 80 }}
-                />
-              </Box>
-            )}
+            {renderTextField('Name', 'name')}
+            {renderTextField('Description', 'description', { multiline: true, rows: 3 })}
+            {renderTextField('Tutorial Link', 'tutorialLink')}
+            {renderImageUpload()}
           </Box>
         );
 
@@ -496,10 +290,23 @@ export default function Dashboard() {
         Dashboard
       </Typography>
 
+      <Snackbar 
+        open={!!error} 
+        autoHideDuration={6000} 
+        onClose={() => setError(null)}
+        anchorOrigin={{ vertical: 'top', horizontal: 'right' }}
+      >
+        <Alert 
+          onClose={() => setError(null)} 
+          severity={error?.type || 'error'} 
+          sx={{ width: '100%' }}
+        >
+          {error?.message}
+        </Alert>
+      </Snackbar>
+
       <Grid container spacing={3}>
         <Grid item xs={12} md={6}>
-         
-
           <FormControl fullWidth>
             <InputLabel id="category-select-label">Category</InputLabel>
             <Select
@@ -517,20 +324,30 @@ export default function Dashboard() {
             </Select>
           </FormControl>
 
-          {/* If a category is chosen, show the respective form fields */}
-          {!loading && selectedCategory && renderFormFields()}
+          {loading ? (
+            <Box sx={{ display: 'flex', justifyContent: 'center', mt: 4 }}>
+              <CircularProgress />
+            </Box>
+          ) : (
+            selectedCategory && renderFormFields()
+          )}
 
-          {/* Submit button */}
           {selectedCategory && !loading && (
-            <Button variant="contained" sx={{ mt: 2 }} onClick={handleSubmit}>
-              {/* For single-doc categories, we show "Update" if existingData found, else "Create".
-                  For multi-doc categories, always "Create" since we want to keep adding. */}
-              {isSingleDocCategory && existingData ? 'Update' : 'Create'}
+            <Button 
+              variant="contained" 
+              sx={{ mt: 2 }} 
+              onClick={handleSubmit}
+              disabled={submitLoading}
+            >
+              {submitLoading ? (
+                <CircularProgress size={24} color="inherit" />
+              ) : (
+                isSingleDocCategory && existingData ? 'Update' : 'Create'
+              )}
             </Button>
           )}
         </Grid>
 
-        {/* On the right side, we show info or placeholders */}
         <Grid item xs={12} md={6}>
           {loading ? (
             <Typography variant="body2" color="textSecondary">
@@ -539,7 +356,7 @@ export default function Dashboard() {
           ) : selectedCategory ? (
             isSingleDocCategory && existingData ? (
               <Typography variant="body2" color="textSecondary">
-                Editing existing {selectedCategory} (ID: {existingData._id}).
+                Editing existing {selectedCategory} (ID: {existingData._id})
               </Typography>
             ) : (
               <Typography variant="body2" color="textSecondary">
@@ -551,7 +368,7 @@ export default function Dashboard() {
             )
           ) : (
             <Typography variant="body2" color="textSecondary">
-              Please select a category ...
+              Please select a category...
             </Typography>
           )}
         </Grid>
