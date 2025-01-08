@@ -107,12 +107,12 @@ const ResourcePage = () => {
   useEffect(() => {
     const fetchResources = async () => {
       try {
-        const [textRes, techRes, tutRes] = await Promise.all([
-          axiosInstance.get(`${API_BASE_URL}/api/resourcetext`),
+        const [ techRes, tutRes] = await Promise.all([
+        
           axiosInstance.get(`${API_BASE_URL}/api/technology`),
           axiosInstance.get(`${API_BASE_URL}/api/tutorial`),
         ]);
-        setResourceText(textRes.data[0]?.text || '');
+        
         setTechnologies(techRes.data);
         setTutorials(tutRes.data);
       } catch (error) {

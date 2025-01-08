@@ -1,4 +1,4 @@
-// ./pages/UserDetailPage.jsx
+
 import React, { useEffect, useState } from 'react';
 import { useParams } from 'react-router-dom';
 import {
@@ -8,25 +8,42 @@ import {
   Card,
   CardContent,
   LinearProgress,
-  Paper,
-  Grid,
+  IconButton,
+  Divider,
+  Stack,
+  Link,
 } from '@mui/material';
+import Timeline from '@mui/lab/Timeline';
+import TimelineItem from '@mui/lab/TimelineItem';
+import TimelineSeparator from '@mui/lab/TimelineSeparator';
+import TimelineConnector from '@mui/lab/TimelineConnector';
+import TimelineContent from '@mui/lab/TimelineContent';
+import TimelineOppositeContent from '@mui/lab/TimelineOppositeContent';
+import TimelineDot from '@mui/lab/TimelineDot';
+import {
+  School as SchoolIcon,
+  Work as WorkIcon,
+  Link as LinkIcon,
+  Facebook as FacebookIcon,
+  Instagram as InstagramIcon,
+  LinkedIn as LinkedInIcon,
+  GitHub as GitHubIcon,
+  YouTube as YouTubeIcon,
+  X as XIcon,
+} from '@mui/icons-material';
 import axiosInstance from '../axiosInstance';
 import { API_BASE_URL } from '../config';
 
 const UserDetailPage = () => {
-  const { id } = useParams(); // e.g. /users/:id
+  const { id } = useParams();
   const [user, setUser] = useState(null);
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
     const fetchUser = async () => {
       try {
-        const token = localStorage.getItem('token');
-        const response = await axiosInstance.get(`${API_BASE_URL}/api/team/${id}`,
-        );
+        const response = await axiosInstance.get(`${API_BASE_URL}/api/team/${id}`);
         setUser(response.data.teamMember);
-        
       } catch (error) {
         console.error('Error fetching user:', error);
       } finally {
@@ -36,107 +53,181 @@ const UserDetailPage = () => {
     fetchUser();
   }, [id]);
 
-  if (loading) {
-    return <LinearProgress />;
-  }
+  if (loading) return <LinearProgress />;
+  if (!user) return <Typography sx={{ mt: 4, textAlign: 'center' }}>User not found.</Typography>;
 
-  if (!user) {
-    return <Typography sx={{ mt: 4, textAlign: 'center' }}>User not found.</Typography>;
-  }
+  const getSocialIcon = (linkType) => {
+    const iconProps = { sx: { fontSize: 24 } };
+    switch (linkType.toLowerCase()) {
+      case 'website': return <LinkIcon {...iconProps} />;
+      case 'facebook': return <FacebookIcon {...iconProps} />;
+      case 'instagram': return <InstagramIcon {...iconProps} />;
+      case 'linkedin': return <LinkedInIcon {...iconProps} />;
+      case 'github': return <GitHubIcon {...iconProps} />;
+      case 'youtube': return <YouTubeIcon {...iconProps} />;
+      case 'x': return <XIcon {...iconProps} />;
+      default: return <LinkIcon {...iconProps} />;
+    }
+  };
 
-  const {
-    name,
-    email,
-    address,
-    role,
-    bio,
-    image,
-    timeline,
-  } = user;
+  const formatDate = (dateString) => {
+    return new Date(dateString).toLocaleDateString('en-US', {
+      year: 'numeric',
+      month: 'short',
+    });
+  };
 
   return (
-    <Box sx={{ py: 4, px: { xs: 2, md: 5 } }}>
+    <Box sx={{ py: 4, px: { xs: 2, md: 5 }, bgcolor: '#f5f5f5', minHeight: '100vh' }}>
       <Card
         sx={{
-          maxWidth: 800,
+          maxWidth: 1000,
           mx: 'auto',
           overflow: 'visible',
           position: 'relative',
-          p: 2,
+          borderRadius: 2,
+          boxShadow: '0 4px 20px rgba(0,0,0,0.1)',
         }}
       >
-        {/* Top Section: Avatar & Basic Info */}
-        <Box sx={{ display: 'flex', alignItems: 'center', gap: 2 }}>
-          <Avatar
-            sx={{ width: 120, height: 120 }}
-            src={`${API_BASE_URL}/${image || 'default-avatar.jpg'}`}
-            alt={name}
-          />
-          <Box>
-            <Typography variant="h4" sx={{ fontWeight: 700 }}>
-              {name}
-            </Typography>
-            <Typography variant="subtitle1" sx={{ color: 'text.secondary' }}>
-              {role} 
-            </Typography>
+        {/* Profile Header */}
+        <Box
+          sx={{
+            p: 4,
+            background: 'linear-gradient(135deg, #1976d2 0%, #1565c0 100%)',
+            color: 'white',
+            borderRadius: '8px 8px 0 0',
+          }}
+        >
+          <Box sx={{ display: 'flex', alignItems: 'center', gap: 3 }}>
+            <Avatar
+              sx={{
+                width: 120,
+                height: 120,
+                border: '4px solid white',
+                boxShadow: '0 4px 10px rgba(0,0,0,0.1)',
+              }}
+              src={`${API_BASE_URL}/${user.image || 'default-avatar.jpg'}`}
+              alt={user.name}
+            />
+            <Box>
+              <Typography variant="h4" sx={{ fontWeight: 700 }}>
+                {user.name}
+              </Typography>
+              <Typography variant="h6" sx={{ opacity: 0.9, mt: 1 }}>
+                {user.role}
+              </Typography>
+            </Box>
           </Box>
         </Box>
 
-        <CardContent>
-          {/* Bio & Contact Info */}
-          <Typography variant="body1" sx={{ mt: 2 }}>
-            <strong>Email:</strong> {email}
-          </Typography>
-          {address && (
-            <Typography variant="body1" sx={{ mt: 1 }}>
-              <strong>Address:</strong> {address}
+        <CardContent sx={{ p: 4 }}>
+          {/* Contact & Bio Section */}
+          <Stack spacing={2} sx={{ mb: 4 }}>
+            <Typography variant="body1">
+              <strong>Email:</strong> {user.email}
             </Typography>
-          )}
-          {bio && (
-            <Typography variant="body1" sx={{ mt: 1 }}>
-              <strong>Bio:</strong> {bio}
-            </Typography>
+            {user.address && (
+              <Typography variant="body1">
+                <strong>Address:</strong> {user.address}
+              </Typography>
+            )}
+            {user.bio && (
+              <Typography variant="body1">
+                <strong>Bio:</strong> {user.bio}
+              </Typography>
+            )}
+          </Stack>
+
+
+          {/* Education Timeline */}
+          {user.education && user.education.length > 0 && (
+            <>
+              <Divider sx={{ my: 3 }} />
+              <Typography variant="h6" sx={{ mb: 2 }}>
+                Education
+              </Typography>
+              <Timeline position="alternate">
+                {user.education.map((edu) => (
+                  <TimelineItem key={edu._id}>
+                    <TimelineOppositeContent sx={{ m: 'auto 0' }} variant="body2" color="text.secondary">
+                      {formatDate(edu.startDate)} - {edu.endDate ? formatDate(edu.endDate) : 'Present'}
+                    </TimelineOppositeContent>
+                    <TimelineSeparator>
+                      <TimelineConnector />
+                      <TimelineDot color="primary">
+                        <SchoolIcon />
+                      </TimelineDot>
+                      <TimelineConnector />
+                    </TimelineSeparator>
+                    <TimelineContent sx={{ py: '12px', px: 2 }}>
+                      <Typography variant="h6" component="span">
+                        {edu.degree}
+                      </Typography>
+                      <Typography>{edu.institution}</Typography>
+                    </TimelineContent>
+                  </TimelineItem>
+                ))}
+              </Timeline>
+            </>
           )}
 
-          {/* Timeline Section */}
-          {timeline && timeline.length > 0 && (
-            <Box sx={{ mt: 4 }}>
+          {/* Experience Timeline */}
+          {user.experience && user.experience.length > 0 && (
+            <>
+              <Divider sx={{ my: 3 }} />
               <Typography variant="h6" sx={{ mb: 2 }}>
-                Education / Career Timeline
+                Experience
               </Typography>
-              {timeline.map((item, index) => (
-                <Paper
-                  key={index}
-                  sx={{
-                    p: 2,
-                    mb: 2,
-                    backgroundColor: '#f9f9f9',
-                  }}
-                >
-                  <Grid container spacing={2}>
-                    <Grid item xs={12} sm={4}>
-                      <Typography variant="subtitle2" sx={{ color: 'text.secondary' }}>
-                        {item.startDate
-                          ? new Date(item.startDate).toLocaleDateString()
-                          : 'N/A'}{' '}
-                        -{' '}
-                        {item.endDate
-                          ? new Date(item.endDate).toLocaleDateString()
-                          : 'Present'}
+              <Timeline position="alternate">
+                {user.experience.map((exp) => (
+                  <TimelineItem key={exp._id}>
+                    <TimelineOppositeContent sx={{ m: 'auto 0' }} variant="body2" color="text.secondary">
+                      {formatDate(exp.startDate)} - {exp.endDate ? formatDate(exp.endDate) : 'Present'}
+                    </TimelineOppositeContent>
+                    <TimelineSeparator>
+                      <TimelineConnector />
+                      <TimelineDot color="secondary">
+                        <WorkIcon />
+                      </TimelineDot>
+                      <TimelineConnector />
+                    </TimelineSeparator>
+                    <TimelineContent sx={{ py: '12px', px: 2 }}>
+                      <Typography variant="h6" component="span">
+                        {exp.degree}
                       </Typography>
-                    </Grid>
-                    <Grid item xs={12} sm={8}>
-                      <Typography variant="body1">
-                        <strong>Institution:</strong> {item.institution}
+                      <Typography>{exp.institution}</Typography>
+                    </TimelineContent>
+                  </TimelineItem>
+                ))}
+              </Timeline>
+                {/* Social Links */}
+                {user.links && user.links.length > 0 && (
+                  <>
+                    <Divider sx={{ my: 3 }} />
+                    <Box sx={{ mb: 4 }}>
+                      <Typography variant="h6" sx={{ mb: 2 }}>
+                        Connect with {user.name}
                       </Typography>
-                      <Typography variant="body1">
-                        <strong>Degree:</strong> {item.degree}
-                      </Typography>
-                    </Grid>
-                  </Grid>
-                </Paper>
-              ))}
-            </Box>
+                      <Stack direction="row" spacing={1}>
+                        {user.links.map((link) => (
+                          <IconButton
+                            key={link._id}
+                            href={link.link}
+                            target="_blank"
+                            rel="noopener noreferrer"
+                            sx={{
+                              color: 'primary.main',
+                              '&:hover': { backgroundColor: 'rgba(25, 118, 210, 0.04)' },
+                            }}
+                          >
+                            {getSocialIcon(link.linkType)}
+                          </IconButton>
+                        ))}
+                      </Stack>
+                    </Box>
+                  </>
+                )}
+            </>
           )}
         </CardContent>
       </Card>

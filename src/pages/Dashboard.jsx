@@ -1,7 +1,3 @@
-
-
-
-
 import React, { useState } from 'react';
 import {
   Typography, Box, Grid, MenuItem, Select, FormControl, InputLabel,
@@ -10,12 +6,12 @@ import {
 import axios from 'axios';
 import { API_BASE_URL } from '../config';
 
-const SINGLE_DOC_CATEGORIES = ['address', 'resourcetext'];
+const SINGLE_DOC_CATEGORIES = ['address', 'about'];
 const MULTI_DOC_CATEGORIES = ['role', 'technology', 'tutorial'];
 const CATEGORY_OPTIONS = [
   { value: 'address', label: 'Address' },
   { value: 'role', label: 'Role' },
-  { value: 'resourcetext', label: 'Resource Text' },
+  { value: 'about', label: 'About Section' },
   { value: 'technology', label: 'Technologies' },
   { value: 'tutorial', label: 'Tutorials' }
 ];
@@ -48,7 +44,7 @@ export default function Dashboard() {
     const requiredFields = {
       address: ['institution', 'city', 'country'],
       role: ['roleName'],
-      resourcetext: ['text'],
+      about: ['text'],
       technology: ['name', 'description'],
       tutorial: ['name', 'description', 'tutorialLink']
     };
@@ -252,10 +248,10 @@ export default function Dashboard() {
           </Box>
         );
 
-      case 'resourcetext':
+      case 'about':
         return (
           <Box sx={{ mt: 2 }}>
-            {renderTextField('Resource Text', 'text', { multiline: true, rows: 4 })}
+            {renderTextField('About Text', 'text', { multiline: true, rows: 4 })}
           </Box>
         );
 

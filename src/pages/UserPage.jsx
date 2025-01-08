@@ -1,7 +1,4 @@
 
-
-// ./pages/UserPage;
-
 import React, { useEffect, useState } from 'react';
 import {
   Button,
@@ -10,9 +7,11 @@ import {
   Typography,
   Avatar,
   Skeleton,
-  Box
+  Box,
+  Switch,
+  FormControlLabel
 } from '@mui/material';
-import Grid from '@mui/material/Grid'; // We’ll use for Skeleton layout, not for final display
+import Grid from '@mui/material/Grid';
 import Slider from 'react-slick';
 import { useSnackbar } from 'notistack';
 import axiosInstance from '../axiosInstance';
@@ -21,6 +20,7 @@ import { API_BASE_URL } from '../config';
 const UserPage = () => {
   const [users, setUsers] = useState([]);
   const [teamMembers, setTeamMembers] = useState([]); // Track team members
+  const [alumniStatus, setAlumniStatus] = useState({}); // Track alumni status
   const [loading, setLoading] = useState(true);
   const { enqueueSnackbar } = useSnackbar();
 
@@ -35,12 +35,17 @@ const UserPage = () => {
         });
         setUsers(usersRes.data);
 
-        // Fetch team members
+        // Fetch team members and their alumni status
         const teamRes = await axiosInstance.get(`${API_BASE_URL}/api/team`, {
           headers: { Authorization: `Bearer ${token}` }
         });
-        // Extract the user IDs from the team members
+
         setTeamMembers(teamRes.data.map((member) => member.userId));
+        const alumniStatusMap = teamRes.data.reduce((acc, member) => {
+          acc[member.userId] = member.isAlumni || false;
+          return acc;
+        }, {});
+        setAlumniStatus(alumniStatusMap);
       } catch (error) {
         enqueueSnackbar('Failed to fetch users or team members', {
           variant: 'error'
@@ -78,7 +83,6 @@ const UserPage = () => {
       enqueueSnackbar('User removed from team successfully!', {
         variant: 'success'
       });
-      // Filter out the removed user's ID
       setTeamMembers((prev) => prev.filter((id) => id !== userId));
     } catch (error) {
       enqueueSnackbar('Failed to remove user from team', { variant: 'error' });
@@ -86,25 +90,44 @@ const UserPage = () => {
     }
   };
 
-  // Slider Settings for react-slick
+  const toggleAlumniStatus = async (userId) => {
+    try {
+      const token = localStorage.getItem('token');
+      const newStatus = !alumniStatus[userId]; // Toggle status for the specific user
+      await axiosInstance.patch(
+        `${API_BASE_URL}/api/team/${userId}/alumni`,
+        { isAlumni: newStatus },
+        { headers: { Authorization: `Bearer ${token}` } }
+      );
+      setAlumniStatus((prev) => ({ ...prev, [userId]: newStatus })); // Only update the status for the user
+      enqueueSnackbar(
+        `User marked as ${newStatus ? 'Alumni' : 'Active Team Member'}`,
+        { variant: 'success' }
+      );
+    } catch (error) {
+      enqueueSnackbar('Failed to update alumni status', { variant: 'error' });
+      console.error(error);
+    }
+  };
+
   const sliderSettings = {
     dots: true,
     infinite: true,
-    speed: 700,            // Slide transition speed (ms)
-    slidesToShow: 3,       // How many cards to show at once
-    slidesToScroll: 1,     // How many cards to scroll each time
-    autoplay: true, 
-    autoplaySpeed: 4000,   // 4 seconds per slide
-    arrows: true,          // Show left/right arrows
+    speed: 700,
+    slidesToShow: 3,
+    slidesToScroll: 1,
+    autoplay: true,
+    autoplaySpeed: 4000,
+    arrows: true,
     responsive: [
       {
-        breakpoint: 960, // <= 960px (tablet)
+        breakpoint: 960,
         settings: {
           slidesToShow: 2
         }
       },
       {
-        breakpoint: 600, // <= 600px (mobile)
+        breakpoint: 600,
         settings: {
           slidesToShow: 1
         }
@@ -119,7 +142,6 @@ const UserPage = () => {
       </Typography>
 
       {loading ? (
-        // If loading, show some skeleton placeholders in a grid layout
         <Grid container spacing={3}>
           {Array.from({ length: 3 }).map((_, index) => (
             <Grid item xs={12} sm={12} md={4} key={index}>
@@ -128,7 +150,6 @@ const UserPage = () => {
           ))}
         </Grid>
       ) : (
-        // Once loaded, use the Slider to show user cards
         <Box
           sx={{
             maxWidth: { xs: '100%', sm: '90%', md: '80%' },
@@ -141,7 +162,6 @@ const UserPage = () => {
                 <Card
                   sx={{
                     borderRadius: '1rem',
-                    // eBay-like gradient
                     background:
                       'linear-gradient(45deg, #e53238 0%, #f5af02 25%, #86b817 50%, #0064d2 75%)',
                     color: '#fff',
@@ -157,7 +177,6 @@ const UserPage = () => {
                     justifyContent: 'center'
                   }}
                 >
-                  {/* White strip at the top for the avatar */}
                   <Box
                     sx={{
                       backgroundColor: '#fff',
@@ -174,7 +193,6 @@ const UserPage = () => {
                     />
                   </Box>
 
-                  {/* Card Content area in white for readability */}
                   <CardContent
                     sx={{
                       backgroundColor: '#fff',
@@ -191,14 +209,27 @@ const UserPage = () => {
                     </Typography>
 
                     {teamMembers.includes(user._id) ? (
-                      <Button
-                        variant="outlined"
-                        color="error"
-                        onClick={() => removeFromTeam(user._id)}
-                        sx={{ mt: 1 }}
-                      >
-                        Remove from Team
-                      </Button>
+                      <>
+                        <Button
+                          variant="outlined"
+                          color="error"
+                          onClick={() => removeFromTeam(user._id)}
+                          sx={{ mt: 1,mr:1 }}
+                        >
+                          Remove from Team
+                        </Button>
+                        <FormControlLabel
+                          control={
+                            <Switch
+                              checked={alumniStatus[user._id] || false}
+                              onChange={() => toggleAlumniStatus(user._id)}
+                              color="primary"
+                            />
+                          }
+                          label="Alumni"
+                          sx={{ mt: 1 }}
+                        />
+                      </>
                     ) : (
                       <Button
                         variant="contained"
