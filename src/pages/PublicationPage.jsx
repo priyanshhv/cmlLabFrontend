@@ -212,7 +212,7 @@ function PublicationSlide({ publication }) {
     >
       <Box
         component="img"
-        src={`${API_BASE_URL}/${publication.coverImage}`}
+        src={`${publication.coverImage}`}
         onError={(e) => {
           e.target.src = '/default-cover.jpg';
         }}
@@ -243,7 +243,7 @@ function PublicationSlide({ publication }) {
             'linear-gradient(0deg, rgba(0,0,0,0.7) 60%, rgba(0,0,0,0) 100%)'
         }}
       >
-        <Typography variant="h5" sx={{ fontWeight: 'bold', mb: 1 }}>
+        <Typography variant="h5" sx={{ fontWeight: 'bold', mb: 1 , color: '#ddd'}}>
           {publication.title}
         </Typography>
         <Typography
@@ -252,7 +252,7 @@ function PublicationSlide({ publication }) {
             maxHeight: 80,
             overflow: 'hidden',
             textOverflow: 'ellipsis',
-            color: '#ddd'
+            color: 'wheat'
           }}
         >
           {truncateSummary(publication.summary)}

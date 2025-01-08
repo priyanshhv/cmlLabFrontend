@@ -1,5 +1,3 @@
-
-
 import React, { useEffect, useState } from 'react';
 import {
   Grid,
@@ -99,7 +97,7 @@ const PublicationsSection = () => {
   }
 
   return (
-    <Box sx={{ py: 5, px: 3 }}>
+    <Box  sx={{ py: 6, px: 3 }}>
       <Typography variant="h4" sx={{ mb: 3, textAlign: 'center' }}>
         Recent Publications
       </Typography>
@@ -137,9 +135,15 @@ const PublicationsSection = () => {
                   sx={{
                     maxHeight: 400,
                     objectFit: 'cover',
-                    width: '100%'
+                    width: '100%',
+                    transition: 'transform 0.2s ease',
+                    '&:hover': {
+                      transform: 'translateY(-4px)',
+                      boxShadow: 4,
+                    },
+
                   }}
-                  image={`${API_BASE_URL}/${pub.coverImage}`}
+                  image={`${pub.coverImage}`}
                   alt={pub.title}
                   onError={(e) => {
                     e.target.src = '/default-cover.jpg';
@@ -156,10 +160,12 @@ const PublicationsSection = () => {
                         href={pub.doi}
                         sx={{ 
                           ml: 1, 
+                          textAlign: 'justify',
                           textDecoration: 'none',
                           '&:hover': {
                             textDecoration: 'none'
-                          }
+                          },
+                          
                         }}
                       >
                         read more

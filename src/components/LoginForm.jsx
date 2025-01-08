@@ -4,6 +4,7 @@ import { useDispatch } from 'react-redux';
 import axiosInstance from '../axiosInstance';
 import { login } from '../redux/userSlice';
 import { API_BASE_URL } from '../config';
+import Alert from '@mui/material/Alert'; // Add this line
 
 const LoginForm = () => {
     const [formData, setFormData] = useState({ email: '', password: '' });
@@ -38,14 +39,14 @@ const LoginForm = () => {
     };
 
     return (
-        <Box sx={{ py: 5, px: { xs: 2, md: 5 } }}>
-            <Typography variant="h4" sx={{ mb: 3 }}>
+        <Box sx={{ py: 5, px: { xs: 2, md: 5 }, maxWidth: 400, mx: 'auto' }}>
+            <Typography variant="h3" sx={{ mb: 3 }}>
                 Login
             </Typography>
             {error && (
-                <Typography variant="body2" color="error" sx={{ mb: 2 }}>
-                    {error}
-                </Typography>
+                <Alert severity="error" sx={{ mb: 2 }}>
+                {error}
+                </Alert>
             )}
             <TextField
                 label="Email"

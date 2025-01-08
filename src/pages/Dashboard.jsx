@@ -75,7 +75,7 @@ export default function Dashboard() {
       setExistingData(data);
       if (data) {
         setFormData(data);
-        if (data.icon) setServerImagePreview(`${API_BASE_URL}/uploads/${data.icon}`);
+        if (data.icon) setServerImagePreview(`${data.icon}`);
       }
     } catch (err) {
       handleError(err);
@@ -166,7 +166,7 @@ export default function Dashboard() {
     } else {
       resetForm();
     }
-    if (data.icon) setServerImagePreview(`${API_BASE_URL}/uploads/${data.icon}`);
+    if (data.icon) setServerImagePreview(`${data.icon}`);
     setError({
       type: 'success',
       message: `${selectedCategory} ${existingData ? 'updated' : 'created'} successfully!`

@@ -20,24 +20,40 @@ class ErrorBoundary extends React.Component {
         window.location.reload();
     };
 
-    render() {
-        if (this.state.hasError) {
-            return (
-                <Box sx={{ textAlign: 'center', py: 5 }}>
-                    <Typography variant="h4" color="error">
-                        Something went wrong.
-                    </Typography>
-                    <Typography variant="body1" sx={{ mb: 2 }}>
-                        Please try refreshing the page.
-                    </Typography>
-                    <Button variant="contained" onClick={this.handleReload}>
-                        Refresh Page
-                    </Button>
-                </Box>
-            );
-        }
-        return this.props.children;
+     render() {
+    if (this.state.hasError) {
+      return (
+        <Box
+          sx={{
+            textAlign: 'center',
+            py: 6,
+            px: 2,
+            backgroundColor: 'background.paper', // unify with theme
+            color: 'text.primary',
+          }}
+        >
+          <Typography
+            variant="h4"
+            sx={{ fontWeight: 700, color: 'error.main', mb: 2 }}
+          >
+            Something went wrong.
+          </Typography>
+          <Typography variant="body1" sx={{ mb: 3 }}>
+            Please try refreshing the page or come back later.
+          </Typography>
+          <Button
+            variant="contained"
+            color="primary"
+            onClick={this.handleReload}
+            sx={{ fontWeight: 600 }}
+          >
+            Refresh Page
+          </Button>
+        </Box>
+      );
     }
+    return this.props.children;
+  }
 }
 
 export default ErrorBoundary;

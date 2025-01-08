@@ -136,8 +136,8 @@ const UserPage = () => {
   };
 
   return (
-    <Box sx={{ py: 5, px: 3 }}>
-      <Typography variant="h4" sx={{ mb: 3, textAlign: 'center' }}>
+   <Box sx={{ py: 6, px: { xs: 2, md: 4 }, backgroundColor: 'background.default' }}>
+      <Typography variant="h3" sx={{ mb: 4, textAlign: 'center', color: 'primary.main' }}>
         Users
       </Typography>
 
@@ -159,55 +159,39 @@ const UserPage = () => {
           <Slider {...sliderSettings}>
             {users.map((user) => (
               <Box key={user._id} sx={{ p: 1 }}>
+               
                 <Card
                   sx={{
                     borderRadius: '1rem',
-                    background:
-                      'linear-gradient(45deg, #e53238 0%, #f5af02 25%, #86b817 50%, #0064d2 75%)',
-                    color: '#fff',
-                    overflow: 'hidden',
-                    transition: 'transform 0.3s',
+                    // Instead of a custom gradient, rely on MUI Paper background:
+                    backgroundColor: 'background.paper',
+                    color: 'text.primary',
+                    // Keep the hover effect subtle (or rely on the global .MuiCard override):
+                    transition: 'transform 0.3s, box-shadow 0.3s',
                     '&:hover': {
                       transform: 'translateY(-4px)',
-                      boxShadow: '0 4px 20px rgba(0,0,0,0.2)'
+                      boxShadow: 4,
                     },
                     height: '100%',
                     display: 'flex',
                     flexDirection: 'column',
-                    justifyContent: 'center'
+                    justifyContent: 'center',
                   }}
                 >
-                  <Box
-                    sx={{
-                      backgroundColor: '#fff',
-                      display: 'flex',
-                      justifyContent: 'center',
-                      pt: 3,
-                      pb: 1
-                    }}
-                  >
+                  <Box sx={{ display: 'flex', justifyContent: 'center', pt: 3, pb: 1 }}>
                     <Avatar
                       sx={{ width: 120, height: 120 }}
-                      src={`${API_BASE_URL}/${user.image || 'default-avatar.jpg'}`}
+                      src={`${user.image}`}
                       alt={user.name}
                     />
                   </Box>
-
-                  <CardContent
-                    sx={{
-                      backgroundColor: '#fff',
-                      color: '#333',
-                      textAlign: 'center',
-                      pt: 0
-                    }}
-                  >
-                    <Typography variant="h6" sx={{ fontWeight: 'bold' }}>
+                  <CardContent sx={{ textAlign: 'center', pt: 0 }}>
+                    <Typography variant="h6" sx={{ fontWeight: 'bold', mb: 0.5 }}>
                       {user.name}
                     </Typography>
-                    <Typography variant="body2" color="textSecondary" sx={{ mb: 2 }}>
+                    <Typography variant="body2" sx={{ color: 'text.secondary', mb: 2 }}>
                       {user.role || 'No role specified'}
                     </Typography>
-
                     {teamMembers.includes(user._id) ? (
                       <>
                         <Button

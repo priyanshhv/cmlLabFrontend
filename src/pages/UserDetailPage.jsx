@@ -106,7 +106,7 @@ const UserDetailPage = () => {
                 border: '4px solid white',
                 boxShadow: '0 4px 10px rgba(0,0,0,0.1)',
               }}
-              src={`${API_BASE_URL}/${user.image || 'default-avatar.jpg'}`}
+              src={`${user.image}`}
               alt={user.name}
             />
             <Box>

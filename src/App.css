@@ -1,21 +1,23 @@
+/* App.css */
 
+/* 1. Basic reset & smooth scrolling */
 html,
 body,
 #root {
     height: 100%;
     margin: 0;
     padding: 0;
-    font-family: 'Roboto', -apple-system, BlinkMacSystemFont, 'Segoe UI',
-        Helvetica, Arial, sans-serif;
-    color: #333;
-
-    /* Subtle diagonal gradient for the body background */
-    background: linear-gradient(135deg, #f0f4f8 0%, #ffffff 100%);
-    /* Smooth scrolling for anchor links or other internal page jumps */
+    /* Use the MUI theme background color for consistency */
+    background-color: #fefefe;
     scroll-behavior: smooth;
 }
 
-/* Headings */
+/* 2. Global text color & headings (typography now mostly in theme) */
+body {
+    color: #333;
+    font-family: 'Roboto', -apple-system, BlinkMacSystemFont, 'Segoe UI', Helvetica, Arial, sans-serif;
+}
+
 h1,
 h2,
 h3,
@@ -24,85 +26,57 @@ h5,
 h6 {
     margin: 0;
     font-weight: 600;
+    line-height: 1.2;
+    color: #2a4365;
+    /* match your theme's primary color for heading emphasis */
 }
 
-/* Buttons */
+/* 3. Buttons (override where needed, but rely on MUI theme for consistency) */
 button {
-    font-family: inherit;
     cursor: pointer;
-    transition: all 0.3s ease;
     border: none;
     border-radius: 6px;
-    padding: 0.6rem 1.2rem;
-    background: #3f51b5;
-    /* primary color */
+    transition: all 0.3s ease;
+    background: #2a4365;
+    /* matches theme primary */
     color: #fff;
 }
 
 button:hover {
-    background: #303f9f;
-    /* darker shade */
+    background: #1f3450;
     transform: translateY(-2px);
-    box-shadow: 0 5px 15px rgba(63, 81, 181, 0.3);
+    box-shadow: 0 5px 15px rgba(32, 44, 75, 0.2);
 }
 
-/* Cards */
+/* 4. Card tweaks (some are replaced by MUI overrides, but you can keep global glass-like effect) */
 .card {
-    border-radius: 12px;
-    /* Subtle glass-like effect: feel free to remove or adjust */
     background: rgba(255, 255, 255, 0.8);
     backdrop-filter: blur(6px);
-
+    border-radius: 12px;
     box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
     overflow: hidden;
-
-    /* Hover Lift Animation */
-    transition: transform 0.3s ease, box-shadow 0.3s ease;
 }
 
-.card:hover {
-    transform: translateY(-4px);
-    box-shadow: 0 10px 20px rgba(0, 0, 0, 0.15);
-}
-
-/* Container */
-.container {
-    max-width: 1200px;
-    margin: 0 auto;
-    padding: 1rem;
-    /* Optional: Add a subtle fade-in class usage or other animations here */
-}
-
-/* Navbar */
+/* 5. Navbar style (tweak gradient & hover states) */
 .navbar {
-    /* Vibrant gradient for the navbar */
-    background: linear-gradient(90deg, #3f51b5 0%, #2196f3 100%);
+    background: linear-gradient(90deg, #2a4365 0%, #3f51b5 100%);
     color: #fff;
     padding: 1rem;
-    /* For a sticky top nav, uncomment:
-     position: sticky;
-     top: 0;
-     z-index: 999; 
-  */
-
-    /* Slight shadow for depth */
     box-shadow: 0 2px 6px rgba(0, 0, 0, 0.1);
-    transition: box-shadow 0.3s ease, background 0.3s ease;
 }
 
 .navbar:hover {
-    /* Slightly deepen the shadow on hover for a “pulse” effect */
-    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.2);
+    box-shadow: 0 4px 10px rgba(0, 0, 0, 0.2);
 }
 
-/* Responsive Adjustments */
-@media (max-width: 600px) {
-    .navbar {
-        padding: 0.5rem;
-    }
+/* 6. Container for consistent side paddings */
+.container {
+    max-width: 1200px;
+    margin: 0 auto;
+    padding: 1rem 1.5rem;
 }
 
-/* Example fade-in animation you can apply to elements */
+/* 7. Reusable fade-in animation */
 @keyframes fadeInUp {
     0% {
         opacity: 0;

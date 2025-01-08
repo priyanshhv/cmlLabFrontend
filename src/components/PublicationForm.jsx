@@ -1,5 +1,3 @@
-
-
 // PublicationForm.jsx
 
 import React, { useState, useEffect } from 'react';
@@ -161,7 +159,7 @@ const PublicationForm = () => {
 
   return (
     <Box>
-      <Typography variant="h4" sx={{ mb: 3 }}>
+      <Typography variant="h6" sx={{ mb: 3 }}>
         Add Publication
       </Typography>
 
@@ -209,10 +207,15 @@ const PublicationForm = () => {
         </Button>
         {preview && (
           <Avatar
-            src={preview}
-            alt="Preview"
-            sx={{ width: 100, height: 100, mb: 2 }}
-          />
+  src={preview}
+  sx={{
+    width: 100,
+    height: 100,
+    mb: 2,
+    border: '2px solid #fff',
+    boxShadow: '0 4px 8px rgba(0,0,0,0.2)',
+  }}
+/>
         )}
       </Box>
 
@@ -253,9 +256,8 @@ const PublicationForm = () => {
                 >
                   <Avatar
                     sx={{ width: 100, height: 100 }}
-                    src={`${API_BASE_URL}/${
-                      member.details.teamMember.image || 'default-avatar.jpg'
-                    }`}
+                    src={`${
+                      member.details.teamMember.image}`}
                     alt={member.details.teamMember.name}
                   />
                 </Box>
