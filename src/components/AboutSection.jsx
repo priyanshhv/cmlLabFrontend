@@ -1,6 +1,12 @@
-
 import React, { useEffect, useState } from 'react';
-import { Box, Typography, Paper, Avatar, Divider, CircularProgress } from '@mui/material';
+import {
+  Box,
+  Typography,
+  Paper,
+  Avatar,
+  Divider,
+  CircularProgress
+} from '@mui/material';
 import Timeline from '@mui/lab/Timeline';
 import TimelineItem from '@mui/lab/TimelineItem';
 import TimelineSeparator from '@mui/lab/TimelineSeparator';
@@ -14,7 +20,7 @@ import { API_BASE_URL } from '../config';
 import { Link } from 'react-router-dom';
 
 const AboutSection = () => {
-  const [aboutContent, setAboutContent] = useState('');
+  const [aboutContent, setAboutContent] = useState({ text: '' });
   const [admin, setAdmin] = useState(null);
   const [loading, setLoading] = useState(true);
 
@@ -23,15 +29,26 @@ const AboutSection = () => {
       try {
         // Fetch about content
         const aboutResponse = await axiosInstance.get(`${API_BASE_URL}/api/about`);
-        setAboutContent(aboutResponse.data[0]);
+        // Check if we got an array, and at least one entry
+        if (Array.isArray(aboutResponse.data) && aboutResponse.data.length > 0) {
+          setAboutContent(aboutResponse.data[0]);
+        } else {
+          // Provide a fallback (blank or default text)
+          setAboutContent({ text: '' });
+        }
 
         // Fetch first admin
         const adminsResponse = await axiosInstance.get(`${API_BASE_URL}/api/admins`);
-        if (adminsResponse.data.length > 0) {
+        // Ensure data is an array and has at least one admin
+        if (Array.isArray(adminsResponse.data) && adminsResponse.data.length > 0) {
           setAdmin(adminsResponse.data[0]);
+        } else {
+          // If no admins found, set admin to null
+          setAdmin(null);
         }
       } catch (error) {
         console.error('Error fetching data:', error);
+        // Even if an error occurs, we’ll stop loading and let the UI show a fallback.
       } finally {
         setLoading(false);
       }
@@ -47,27 +64,32 @@ const AboutSection = () => {
     });
   };
 
-   return loading ? (
-    <Box sx={{ display: 'flex', justifyContent: 'center', py: 5 }}>
-      <CircularProgress />
-    </Box>
-  ) : (
+  if (loading) {
+    // Show spinner while fetching
+    return (
+      <Box sx={{ display: 'flex', justifyContent: 'center', py: 5 }}>
+        <CircularProgress />
+      </Box>
+    );
+  }
+
+  return (
     <Box
       sx={{
         position: 'relative',
-        py: 6,                    // Increased padding for breathing room
-        px: { xs: 2, md: 6 },     // Slightly bigger horizontal padding
+        py: 6,
+        px: { xs: 2, md: 6 },
         background: 'linear-gradient(135deg, #e0f7fa 0%, #ffffff 100%)',
       }}
     >
       {/* About Section */}
       <Box sx={{ textAlign: 'center', mb: 4 }}>
         <Typography
-          variant="h3"             // Slightly larger heading
+          variant="h3"
           sx={{
             mb: 2,
             fontWeight: 700,
-            color: 'primary.main', // Use your theme's primary color for emphasis
+            color: 'primary.main',
           }}
         >
           About Us
@@ -77,20 +99,22 @@ const AboutSection = () => {
           sx={{
             maxWidth: '800px',
             mx: 'auto',
-            fontSize: '1rem',      // Ensure consistent body text
+            fontSize: '1rem',
             color: 'text.primary',
             lineHeight: 1.6,
-             textAlign: 'justify',
+            textAlign: 'justify',
           }}
         >
-          {aboutContent.text}
+          {aboutContent.text
+            ? aboutContent.text
+            : 'We’re sorry, no about information is available at the moment.'}
         </Typography>
       </Box>
 
       <Divider sx={{ my: 4 }} />
 
       {/* Admin Section */}
-      {admin && (
+      {admin ? (
         <Paper
           elevation={3}
           sx={{
@@ -122,7 +146,7 @@ const AboutSection = () => {
               <Avatar
                 component={Link}
                 to={`/users/${admin._id}`}
-                src={`${admin.image}`}
+                src={admin.image || ''}
                 alt={admin.name}
                 sx={{
                   width: 150,
@@ -151,7 +175,7 @@ const AboutSection = () => {
               >
                 Experience
               </Typography>
-              {admin.experience && admin.experience.length > 0 && (
+              {admin.experience && admin.experience.length > 0 ? (
                 <Timeline position="alternate">
                   {admin.experience.map((exp, index) => (
                     <TimelineItem key={index}>
@@ -186,13 +210,22 @@ const AboutSection = () => {
                     </TimelineItem>
                   ))}
                 </Timeline>
+              ) : (
+                <Typography variant="body2" color="text.secondary">
+                  No experience details available.
+                </Typography>
               )}
             </Box>
           </Box>
         </Paper>
+      ) : (
+        // If no admin is found, just skip or show a fallback
+        <Typography variant="body2" sx={{ textAlign: 'center', mt: 2 }}>
+          No admin information available at the moment.
+        </Typography>
       )}
 
-      {/* Wave SVG */}
+      {/* Wave SVG (optional decoration) */}
       <Box
         component="svg"
         sx={{
@@ -206,6 +239,7 @@ const AboutSection = () => {
         fill="none"
         xmlns="http://www.w3.org/2000/svg"
       >
+        {/* You can re-insert your actual wave path here if needed */}
       </Box>
     </Box>
   );
