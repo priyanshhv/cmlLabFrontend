@@ -3,12 +3,13 @@
 import React, { useState, useEffect } from 'react';
 import {
   TextField,
-  Button,
+  Button,  Card,
+  CardContent,
+  
+  CardMedia,
   Box,
   Typography,
   Avatar,
-  Card,
-  CardContent
 } from '@mui/material';
 import Slider from 'react-slick'; // <-- Import from react-slick
 import axiosInstance from '../axiosInstance';
@@ -206,16 +207,27 @@ const PublicationForm = () => {
           />
         </Button>
         {preview && (
-          <Avatar
-  src={preview}
-  sx={{
-    width: 100,
-    height: 100,
-    mb: 2,
-    border: '2px solid #fff',
-    boxShadow: '0 4px 8px rgba(0,0,0,0.2)',
-  }}
-/>
+          <Card>
+      <CardMedia
+        component="img"
+        sx={{
+          maxHeight: 400,
+          objectFit: 'cover',
+          width: '100%',
+          transition: 'transform 0.2s ease',
+          '&:hover': {
+            transform: 'translateY(-4px)',
+            boxShadow: 4,
+          },
+        }}
+        image={preview}
+        alt="Research Paper Preview"
+        onError={(e) => {
+          e.target.src = '/default-cover.jpg';
+        }}
+      />
+    </Card>
+
         )}
       </Box>
 
