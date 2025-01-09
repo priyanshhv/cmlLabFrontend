@@ -4,7 +4,10 @@ import {
   Typography,
   Box,
   Skeleton,
-  Link as MuiLink
+  Link as MuiLink,
+  Card,
+  CardMedia,
+  CardContent
 } from '@mui/material';
 import Carousel from 'react-material-ui-carousel';
 import { Link } from 'react-router-dom';
@@ -118,6 +121,7 @@ export default function PublicationsSection() {
         Publications by Year
       </Typography>
 
+      {/* Year Picker */}
       <Box sx={{ display: 'flex', justifyContent: 'center', mb: 3 }}>
         <LocalizationProvider dateAdapter={AdapterDayjs}>
           <DesktopDatePicker
@@ -143,6 +147,7 @@ export default function PublicationsSection() {
         </LocalizationProvider>
       </Box>
 
+      {/* Loading / No Publications Fallback */}
       {loading ? (
         <Grid container spacing={3} sx={{ px: 3 }}>
           {Array.from({ length: 4 }).map((_, idx) => (
@@ -162,127 +167,88 @@ export default function PublicationsSection() {
       ) : (
         <Box
           sx={{
-            width: { xs: '95%', sm: '80%', md: '70%' },
-            margin: '0 auto',
-            boxShadow: '0 4px 20px rgba(0,0,0,0.1)',
-            borderRadius: '1rem',
-            overflow: 'hidden',
-            backgroundColor: 'rgba(255, 255, 255, 0.6)',
-            backdropFilter: 'blur(8px)'
+            width: { xs: '90%', sm: '80%', md: '60%' },
+            margin: '0 auto'
           }}
         >
           <Carousel
             autoPlay
-            interval={5000}
+            interval={6000}
             indicators
             swipe
             cycleNavigation
             navButtonsAlwaysVisible
             fullHeightHover={false}
             animation="slide"
-            duration={1200}
+            duration={1900}
           >
             {publications.map((pub) => (
-              <PublicationSlide key={pub._id} publication={pub} />
+              <Card key={pub._id}>
+                <CardMedia
+                  component="img"
+                  sx={{
+                    // If you prefer to see the whole image, use 'contain'. 
+                    // If you want it to fill the area, use 'cover'. 
+                    objectFit: 'contain', 
+                    height: 400,
+                    transition: 'transform 0.2s ease',
+                    backgroundColor: '#f7f7f7', // subtle background behind 'contain'
+                    '&:hover': {
+                      transform: 'translateY(-4px)',
+                      boxShadow: 4
+                    }
+                  }}
+                  image={pub.coverImage}
+                  alt={pub.title}
+                  onError={(e) => {
+                    e.target.src = '/default-cover.jpg';
+                  }}
+                />
+                <CardContent>
+                  <Typography variant="h6" textAlign="center" gutterBottom>
+                    {pub.title}
+                  </Typography>
+
+                  <Typography variant="body2" color="textSecondary" sx={{ mb: 1 }}>
+                    {truncateSummary(pub.summary)}
+                    {pub.summary.split(' ').length > 80 && pub.doi && (
+                      <MuiLink
+                        href={pub.doi}
+                        sx={{
+                          ml: 1,
+                          textAlign: 'justify',
+                          textDecoration: 'none',
+                          '&:hover': {
+                            textDecoration: 'none'
+                          }
+                        }}
+                      >
+                        read more
+                      </MuiLink>
+                    )}
+                  </Typography>
+
+                  <Typography variant="body2" color="textSecondary" sx={{ mb: 1 }}>
+                    <strong>Authors: </strong>
+                    {renderAuthors(pub.registeredAuthors, pub.unregisteredAuthors)}
+                  </Typography>
+
+                  {pub.doi && (
+                    <MuiLink
+                      href={pub.doi}
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      underline="hover"
+                    >
+                      Read Full Article
+                    </MuiLink>
+                  )}
+                </CardContent>
+              </Card>
             ))}
           </Carousel>
         </Box>
       )}
-    </Box>
-  );
-}
-
-function PublicationSlide({ publication }) {
-  const authors = renderAuthors(
-    publication.registeredAuthors,
-    publication.unregisteredAuthors
-  );
-
-  return (
-    <Box
-      sx={{
-        /* Removed fixed height and overflow hidden so the image 
-           can be fully visible regardless of its aspect ratio */
-        position: 'relative',
-        width: '100%',
-        display: 'flex',
-        alignItems: 'center',
-        justifyContent: 'center',
-        borderRadius: '1rem',
-        backgroundColor: '#000', // optional to add contrast behind 'contain' images
-      }}
-    >
-      <Box
-        component="img"
-        src={`${publication.coverImage}`}
-        onError={(e) => {
-          e.target.src = '/default-cover.jpg';
-        }}
-        alt={publication.title}
-        sx={{
-          width: '100%',
-          height: 'auto',
-          objectFit: 'contain', // ensures the entire image is visible
-          zIndex: 0
-        }}
-      />
-
-      {/* Content Overlay */}
-      <Box
-        sx={{
-          position: 'absolute',
-          bottom: 0,
-          width: '100%',
-          p: 2,
-          color: '#fff',
-          background:
-            'linear-gradient(0deg, rgba(0,0,0,0.7) 60%, rgba(0,0,0,0) 100%)'
-        }}
-      >
-        <Typography variant="h5" sx={{ fontWeight: 'bold', mb: 1, color: '#ddd' }}>
-          {publication.title}
-        </Typography>
-        <Typography
-          variant="body2"
-          sx={{
-            maxHeight: 80,
-            overflow: 'hidden',
-            textOverflow: 'ellipsis',
-            color: 'wheat'
-          }}
-        >
-          {truncateSummary(publication.summary)}
-          {publication.summary.split(' ').length > 80 && publication.doi && (
-            <MuiLink
-              href={publication.doi}
-              sx={{
-                ml: 1,
-                color: '#ffe28c',
-                textDecoration: 'none',
-                '&:hover': {
-                  textDecoration: 'none'
-                }
-              }}
-            >
-              read more
-            </MuiLink>
-          )}
-        </Typography>
-        <Typography variant="body2" sx={{ mt: 1, color: '#ddd' }}>
-          <strong>Authors: </strong> {authors}
-        </Typography>
-        {publication.doi && (
-          <MuiLink
-            href={publication.doi}
-            target="_blank"
-            rel="noopener noreferrer"
-            underline="hover"
-            sx={{ color: '#ffe28c', display: 'inline-block', mt: 1 }}
-          >
-            Read Full Article
-          </MuiLink>
-        )}
-      </Box>
     </Box>
   );
 }

@@ -119,7 +119,7 @@ const PublicationsSection = () => {
         >
           <Carousel
             autoPlay
-            interval={5000}
+            interval={7000}
             indicators
             swipe
             cycleNavigation
