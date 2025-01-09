@@ -200,7 +200,7 @@ const UserPage = () => {
                           onClick={() => removeFromTeam(user._id)}
                           sx={{ mt: 1,mr:1 }}
                         >
-                          Remove from Team
+                          Remove 
                         </Button>
                         <FormControlLabel
                           control={
@@ -221,7 +221,7 @@ const UserPage = () => {
                         onClick={() => addToTeam(user._id)}
                         sx={{ mt: 1 }}
                       >
-                        Add to Team
+                        Add 
                       </Button>
                     )}
                   </CardContent>

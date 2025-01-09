@@ -110,10 +110,10 @@ const UserDetailPage = () => {
               alt={user.name}
             />
             <Box>
-              <Typography variant="h4" sx={{ fontWeight: 700 }}>
+              <Typography variant="h4" sx={{ opacity: 0.9,fontWeight: 700 ,color: "white"}}>
                 {user.name}
               </Typography>
-              <Typography variant="h6" sx={{ opacity: 0.9, mt: 1 }}>
+              <Typography variant="h6" sx={{ opacity: 0.9, mt: 1 ,color: "white"}}>
                 {user.role}
               </Typography>
             </Box>
