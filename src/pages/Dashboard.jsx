@@ -1,21 +1,25 @@
 import React, { useState } from 'react';
 import {
   Typography, Box, Grid, MenuItem, Select, FormControl, InputLabel,
-  Button, TextField, Avatar, Alert, Snackbar, CircularProgress
+  Button, TextField, Avatar, Snackbar, CircularProgress
 } from '@mui/material';
+// ADD THIS IMPORT:
+import Alert from '@mui/material/Alert';
+
 import axios from 'axios';
 import { API_BASE_URL } from '../config';
 
 const SINGLE_DOC_CATEGORIES = ['address', 'about'];
-const MULTI_DOC_CATEGORIES = ['role', 'technology', 'tutorial'];
+const MULTI_DOC_CATEGORIES = ['role', 'technology', 'tutorial', 'notes'];
 const CATEGORY_OPTIONS = [
   { value: 'address', label: 'Address' },
   { value: 'role', label: 'Role' },
   { value: 'about', label: 'About Section' },
   { value: 'technology', label: 'Technologies' },
-  { value: 'tutorial', label: 'Tutorials' }
+  { value: 'tutorial', label: 'Tutorials' },
+  { value: 'notes', label: 'Notes' }
 ];
-const MAX_FILE_SIZE = 5 * 1024 * 1024;
+const MAX_FILE_SIZE = 5 * 1024 * 1024; // 5MB
 
 export default function Dashboard() {
   const [selectedCategory, setSelectedCategory] = useState('');
@@ -33,6 +37,9 @@ export default function Dashboard() {
   const isSingleDocCategory = SINGLE_DOC_CATEGORIES.includes(selectedCategory);
   const isMultiDocCategory = MULTI_DOC_CATEGORIES.includes(selectedCategory);
 
+  // ------------------
+  // Validation Helpers
+  // ------------------
   const validateField = (name, value) => {
     if (!value || value.trim() === '') return `${name} is required`;
     if (value.length < 2) return `${name} must be at least 2 characters`;
@@ -46,11 +53,12 @@ export default function Dashboard() {
       role: ['roleName'],
       about: ['text'],
       technology: ['name', 'description'],
-      tutorial: ['name', 'description', 'tutorialLink']
+      tutorial: ['name', 'description', 'tutorialLink'],
+      notes: ['name', 'description', 'noteLink']
     };
 
     const fields = requiredFields[selectedCategory] || [];
-    fields.forEach(field => {
+    fields.forEach((field) => {
       const error = validateField(field, formData[field]);
       if (error) errors[field] = error;
     });
@@ -59,23 +67,38 @@ export default function Dashboard() {
     return Object.keys(errors).length === 0;
   };
 
+  // ------------------
+  // Category Selection
+  // ------------------
   const handleSelectCategory = async (category) => {
     setSelectedCategory(category);
     resetForm();
+
+    // If it's a multi-doc category (role, tech, tutorial, notes), we don't fetch a single existing doc
     if (!category || isMultiDocCategory) return;
 
     setLoading(true);
     try {
       if (!token) throw new Error('Authentication required');
+
       const res = await axios.get(`${API_BASE_URL}/api/${category}`, {
         headers: { Authorization: `Bearer ${token}` }
       });
 
+      // Because single doc categories might be an array or a single object,
+      // pick the first element if it's an array.
       const data = Array.isArray(res.data) ? res.data[0] || null : res.data;
       setExistingData(data);
+
+      // If we got an existing doc, fill in our form and handle any icon fields
       if (data) {
         setFormData(data);
-        if (data.icon) setServerImagePreview(`${data.icon}`);
+        // For single-doc categories that might have icon/newIcon
+        if (data.icon) {
+          setServerImagePreview(data.icon);
+        } else if (data.newIcon) {
+          setServerImagePreview(data.newIcon);
+        }
       }
     } catch (err) {
       handleError(err);
@@ -84,24 +107,29 @@ export default function Dashboard() {
     }
   };
 
+  // ------------------
+  // Form Helpers
+  // ------------------
   const handleFormChange = (e) => {
     const { name, value } = e.target;
-    setFormData(prev => ({ ...prev, [name]: value }));
+    setFormData((prev) => ({ ...prev, [name]: value }));
+
+    // Re-validate this field if it previously had an error
     if (formErrors[name]) {
       const error = validateField(name, value);
-      setFormErrors(prev => ({ ...prev, [name]: error }));
+      setFormErrors((prev) => ({ ...prev, [name]: error }));
     }
   };
 
   const handleFileChange = (e) => {
-    const file = e.target.files[0];
+    const file = e.target.files?.[0];
     if (!file) return;
 
+    // Basic checks
     if (!file.type.startsWith('image/')) {
       handleError({ message: 'Please upload an image file' });
       return;
     }
-
     if (file.size > MAX_FILE_SIZE) {
       handleError({ message: 'File size should not exceed 5MB' });
       return;
@@ -109,9 +137,12 @@ export default function Dashboard() {
 
     setImageFile(file);
     setLocalPreview(URL.createObjectURL(file));
-    setError(null);
+    setError(null); // clear any error related to file
   };
 
+  // ------------------
+  // Submit Logic
+  // ------------------
   const handleSubmit = async () => {
     if (!selectedCategory || !validateForm()) return;
 
@@ -128,6 +159,7 @@ export default function Dashboard() {
 
       const data = prepareFormData();
       const endpoint = getEndpoint();
+      // If it's a single doc category AND we already have existing data, do PATCH; otherwise POST
       const method = isSingleDocCategory && existingData ? 'patch' : 'post';
 
       const response = await axios[method](endpoint, data, config);
@@ -139,40 +171,63 @@ export default function Dashboard() {
     }
   };
 
-  const isFileUploadRequired = () => ['technology', 'tutorial'].includes(selectedCategory);
+  const isFileUploadRequired = () =>
+    ['technology', 'tutorial', 'notes'].includes(selectedCategory);
 
   const prepareFormData = () => {
-    if (!isFileUploadRequired()) return formData;
+    // For single-doc categories that don't need an image, just submit JSON
+    if (!isFileUploadRequired()) {
+      return formData;
+    }
 
+    // For categories requiring an image (technology, tutorial, notes), use FormData
     const data = new FormData();
     Object.entries(formData).forEach(([key, value]) => {
       if (value != null) data.append(key, value);
     });
+
+    // Upload image if provided
     if (imageFile) {
-      data.append(selectedCategory === 'technology' ? 'icon' : 'newIcon', imageFile);
+      // technology => 'icon', tutorial/notes => 'newIcon'
+      const imageKey = selectedCategory === 'technology' ? 'icon' : 'newIcon';
+      data.append(imageKey, imageFile);
     }
     return data;
   };
 
   const getEndpoint = () => {
     const base = `${API_BASE_URL}/api/${selectedCategory}`;
-    return (isSingleDocCategory && existingData) ? `${base}/${existingData._id}` : base;
+    // If single-doc & we have existing data => PATCH /:id
+    return isSingleDocCategory && existingData ? `${base}/${existingData._id}` : base;
   };
 
   const handleSubmitSuccess = (data) => {
+    // If it's single-doc, update existing data in state
     if (isSingleDocCategory) {
       setExistingData(data);
       setFormData(data);
     } else {
+      // If multi-doc, clear the form
       resetForm();
     }
-    if (data.icon) setServerImagePreview(`${data.icon}`);
+
+    // Update the server preview if the returned document has icon/newIcon
+    if (data.icon) {
+      setServerImagePreview(data.icon);
+    } else if (data.newIcon) {
+      setServerImagePreview(data.newIcon);
+    }
+
+    // Show success message
     setError({
       type: 'success',
       message: `${selectedCategory} ${existingData ? 'updated' : 'created'} successfully!`
     });
   };
 
+  // ------------------
+  // Error Handling
+  // ------------------
   const handleError = (err) => {
     const message = err.response?.data?.message || err.message || 'An error occurred';
     setError({ type: 'error', message });
@@ -188,11 +243,15 @@ export default function Dashboard() {
     setFormErrors({});
   };
 
+  // ------------------
+  // Rendering
+  // ------------------
   const renderFormFields = () => {
     if (!selectedCategory) return null;
 
     const renderTextField = (label, name, options = {}) => (
       <TextField
+        key={name}
         label={label}
         name={name}
         value={formData[name] || ''}
@@ -240,21 +299,18 @@ export default function Dashboard() {
             {renderTextField('Country', 'country')}
           </Box>
         );
-
       case 'role':
         return (
           <Box sx={{ mt: 2 }}>
             {renderTextField('Role Name', 'roleName')}
           </Box>
         );
-
       case 'about':
         return (
           <Box sx={{ mt: 2 }}>
             {renderTextField('About Text', 'text', { multiline: true, rows: 4 })}
           </Box>
         );
-
       case 'technology':
         return (
           <Box sx={{ mt: 2 }}>
@@ -264,7 +320,6 @@ export default function Dashboard() {
             {renderImageUpload()}
           </Box>
         );
-
       case 'tutorial':
         return (
           <Box sx={{ mt: 2 }}>
@@ -274,7 +329,15 @@ export default function Dashboard() {
             {renderImageUpload()}
           </Box>
         );
-
+      case 'notes':
+        return (
+          <Box sx={{ mt: 2 }}>
+            {renderTextField('Name', 'name')}
+            {renderTextField('Description', 'description', { multiline: true, rows: 3 })}
+            {renderTextField('Note Link', 'noteLink')}
+            {renderImageUpload()}
+          </Box>
+        );
       default:
         return null;
     }
@@ -286,15 +349,16 @@ export default function Dashboard() {
         Dashboard
       </Typography>
 
-      <Snackbar 
-        open={!!error} 
-        autoHideDuration={6000} 
+      {/* Snackbar for errors/success */}
+      <Snackbar
+        open={!!error}
+        autoHideDuration={6000}
         onClose={() => setError(null)}
         anchorOrigin={{ vertical: 'top', horizontal: 'right' }}
       >
-        <Alert 
-          onClose={() => setError(null)} 
-          severity={error?.type || 'error'} 
+        <Alert
+          onClose={() => setError(null)}
+          severity={error?.type || 'error'}
           sx={{ width: '100%' }}
         >
           {error?.message}
@@ -302,6 +366,7 @@ export default function Dashboard() {
       </Snackbar>
 
       <Grid container spacing={3}>
+        {/* Left panel */}
         <Grid item xs={12} md={6}>
           <FormControl fullWidth>
             <InputLabel id="category-select-label">Category</InputLabel>
@@ -329,9 +394,9 @@ export default function Dashboard() {
           )}
 
           {selectedCategory && !loading && (
-            <Button 
-              variant="contained" 
-              sx={{ mt: 2 }} 
+            <Button
+              variant="contained"
+              sx={{ mt: 2 }}
               onClick={handleSubmit}
               disabled={submitLoading}
             >
@@ -344,6 +409,7 @@ export default function Dashboard() {
           )}
         </Grid>
 
+        {/* Right panel */}
         <Grid item xs={12} md={6}>
           {loading ? (
             <Typography variant="body2" color="textSecondary">
@@ -358,8 +424,7 @@ export default function Dashboard() {
               <Typography variant="body2" color="textSecondary">
                 {isSingleDocCategory
                   ? `No ${selectedCategory} found. You can create one now.`
-                  : `Add a new ${selectedCategory}.`
-                }
+                  : `Add a new ${selectedCategory}.`}
               </Typography>
             )
           ) : (

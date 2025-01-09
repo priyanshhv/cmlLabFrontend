@@ -1,4 +1,3 @@
-
 import React, { useEffect, useState } from 'react';
 import {
   Grid,
@@ -52,7 +51,7 @@ function renderAuthors(registeredAuthors = [], unregisteredAuthors = []) {
 }
 
 export default function PublicationsSection() {
-  const [selectedYear, setSelectedYear] = useState(dayjs()); 
+  const [selectedYear, setSelectedYear] = useState(dayjs());
   const [publications, setPublications] = useState([]);
   const [loading, setLoading] = useState(true);
 
@@ -61,7 +60,9 @@ export default function PublicationsSection() {
       try {
         setLoading(true);
         const yearNum = selectedYear.year();
-        const res = await axiosInstance.get(`${API_BASE_URL}/api/publications/year/${yearNum}`);
+        const res = await axiosInstance.get(
+          `${API_BASE_URL}/api/publications/year/${yearNum}`
+        );
 
         const pubsWithAuthors = await Promise.all(
           res.data.map(async (pub) => {
@@ -105,7 +106,7 @@ export default function PublicationsSection() {
     <Box
       sx={{
         position: 'relative',
-        minHeight:'100vh',
+        minHeight: '100vh',
         py: 5,
         background: 'linear-gradient(135deg, #c0c0ff 0%, #e1e0fa 50%, #fefefe 100%)'
       }}
@@ -200,14 +201,15 @@ function PublicationSlide({ publication }) {
   return (
     <Box
       sx={{
+        /* Removed fixed height and overflow hidden so the image 
+           can be fully visible regardless of its aspect ratio */
         position: 'relative',
         width: '100%',
-        height: { xs: 380, md: 440 },
         display: 'flex',
         alignItems: 'center',
         justifyContent: 'center',
-        overflow: 'hidden',
-        borderRadius: '1rem'
+        borderRadius: '1rem',
+        backgroundColor: '#000', // optional to add contrast behind 'contain' images
       }}
     >
       <Box
@@ -218,32 +220,26 @@ function PublicationSlide({ publication }) {
         }}
         alt={publication.title}
         sx={{
-          position: 'absolute',
-          top: 0,
-          left: 0,
           width: '100%',
-          height: '100%',
-          objectFit: 'cover',
-          zIndex: 0,
-          transition: 'transform 0.4s ease',
-          '&:hover': {
-            transform: 'scale(1.05)'
-          }
+          height: 'auto',
+          objectFit: 'contain', // ensures the entire image is visible
+          zIndex: 0
         }}
       />
 
+      {/* Content Overlay */}
       <Box
         sx={{
           position: 'absolute',
           bottom: 0,
           width: '100%',
-          padding: '1rem',
+          p: 2,
           color: '#fff',
           background:
             'linear-gradient(0deg, rgba(0,0,0,0.7) 60%, rgba(0,0,0,0) 100%)'
         }}
       >
-        <Typography variant="h5" sx={{ fontWeight: 'bold', mb: 1 , color: '#ddd'}}>
+        <Typography variant="h5" sx={{ fontWeight: 'bold', mb: 1, color: '#ddd' }}>
           {publication.title}
         </Typography>
         <Typography
@@ -259,8 +255,8 @@ function PublicationSlide({ publication }) {
           {publication.summary.split(' ').length > 80 && publication.doi && (
             <MuiLink
               href={publication.doi}
-              sx={{ 
-                ml: 1, 
+              sx={{
+                ml: 1,
                 color: '#ffe28c',
                 textDecoration: 'none',
                 '&:hover': {

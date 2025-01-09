@@ -9,6 +9,7 @@ import {
   Snackbar,
   Collapse,
   IconButton,
+  CircularProgress
 } from '@mui/material';
 import { makeStyles } from '@mui/styles';
 import { useTheme } from '@mui/material/styles';
@@ -16,13 +17,13 @@ import axiosInstance from '../axiosInstance';
 import { API_BASE_URL } from '../config';
 import { useSnackbar } from 'notistack';
 import ExpandMoreIcon from '@mui/icons-material/ExpandMore';
+// Make sure to import Alert from MUI
+import Alert from '@mui/material/Alert';
 
 const useStyles = makeStyles((theme) => ({
   mainContainer: {
     display: 'flex',
     flexDirection: 'column',
-    alignItems: 'center',
-    justifyContent: 'center',
     minHeight: '100vh',
     padding: theme.spacing(4),
     backgroundColor: theme.palette.background.default,
@@ -45,7 +46,6 @@ const useStyles = makeStyles((theme) => ({
   sectionTitle: {
     fontSize: '1.5rem',
     fontWeight: 600,
-    
     marginBottom: theme.spacing(3),
     textAlign: 'center',
   },
@@ -89,6 +89,12 @@ const useStyles = makeStyles((theme) => ({
       backgroundColor: theme.palette.primary.dark,
     },
   },
+  spinnerContainer: {
+    display: 'flex',
+    justifyContent: 'center',
+    alignItems: 'center',
+    minHeight: '50vh',
+  },
 }));
 
 const ResourcePage = () => {
@@ -97,58 +103,88 @@ const ResourcePage = () => {
   const isMobile = useMediaQuery(theme.breakpoints.down('sm'));
   const { enqueueSnackbar } = useSnackbar();
 
-  const [resourceText, setResourceText] = useState('');
+  // States for each resource collection
   const [technologies, setTechnologies] = useState([]);
   const [tutorials, setTutorials] = useState([]);
+  const [notes, setNotes] = useState([]);
+
   const [error, setError] = useState(null);
   const [expandedTech, setExpandedTech] = useState(null);
   const [expandedTut, setExpandedTut] = useState(null);
+  const [expandedNote, setExpandedNote] = useState(null);
 
+  const [loading, setLoading] = useState(true);
+
+  // Fetch all three resources: technology, tutorial, notes
   useEffect(() => {
     const fetchResources = async () => {
+      setLoading(true);
       try {
-        const [ techRes, tutRes] = await Promise.all([
-        
+        // Triple fetch in parallel
+        const [techRes, tutRes, notesRes] = await Promise.all([
           axiosInstance.get(`${API_BASE_URL}/api/technology`),
           axiosInstance.get(`${API_BASE_URL}/api/tutorial`),
+          axiosInstance.get(`${API_BASE_URL}/api/notes`),
         ]);
-        
         setTechnologies(techRes.data);
         setTutorials(tutRes.data);
+        setNotes(notesRes.data);
       } catch (error) {
         setError(error);
         enqueueSnackbar('Failed to fetch resources', { variant: 'error' });
+      } finally {
+        setLoading(false);
       }
     };
 
     fetchResources();
   }, [enqueueSnackbar]);
 
+  // Handle collapsible panel toggling
   const handleExpandClick = (id, type) => {
     if (type === 'tech') {
       setExpandedTech(expandedTech === id ? null : id);
-    } else {
+    } else if (type === 'tutorial') {
       setExpandedTut(expandedTut === id ? null : id);
+    } else if (type === 'notes') {
+      setExpandedNote(expandedNote === id ? null : id);
     }
   };
+
+  // Show spinner if still loading
+  if (loading) {
+    return (
+      <Container maxWidth="lg" className={classes.mainContainer}>
+        <Box className={classes.spinnerContainer}>
+          <CircularProgress size={60} />
+        </Box>
+      </Container>
+    );
+  }
 
   return (
     <Container maxWidth="lg" className={classes.mainContainer}>
       <Box className={classes.titleContainer}>
         <Typography className={classes.title}>Explore Our Resources</Typography>
         <Typography className={classes.subtitle}>
-          Discover resources, technologies, and tutorials curated just for you
+          Discover resources, technologies, tutorials, and notes curated just for you
         </Typography>
       </Box>
 
+      {/* Error Snackbar (if any) */}
       {error && (
-        <Snackbar open={!!error} autoHideDuration={6000} onClose={() => setError(null)}>
+        <Snackbar
+          open={!!error}
+          autoHideDuration={6000}
+          onClose={() => setError(null)}
+        >
           <Alert onClose={() => setError(null)} severity="error">
             An error occurred while fetching resources: {error.message}
           </Alert>
         </Snackbar>
       )}
 
+      {/* Technologies Section */}
       <Box>
         <Typography className={classes.sectionTitle}>Technologies</Typography>
         <Grid container spacing={4} justifyContent="center">
@@ -158,7 +194,7 @@ const ResourcePage = () => {
                 <Box display="flex" alignItems="center">
                   <img
                     className={classes.techImage}
-                    src={`${API_BASE_URL}/${tech.icon.replace(/\\/g, '/')}`}
+                    src={tech.icon}
                     alt={tech.name}
                   />
                   <Typography variant="h6" className={classes.techName}>
@@ -171,20 +207,21 @@ const ResourcePage = () => {
                     <ExpandMoreIcon />
                   </IconButton>
                 </Box>
-
                 <Collapse in={expandedTech === tech._id}>
                   <Box className={classes.collapseContent}>
                     <Typography variant="body2" color="textSecondary" gutterBottom>
                       {tech.description}
                     </Typography>
-                    <Button
-                      variant="contained"
-                      href={tech.downloadLink}
-                      target="_blank"
-                      className={classes.button}
-                    >
-                      Download
-                    </Button>
+                    {tech.downloadLink && (
+                      <Button
+                        variant="contained"
+                        href={tech.downloadLink}
+                        target="_blank"
+                        className={classes.button}
+                      >
+                        Download
+                      </Button>
+                    )}
                   </Box>
                 </Collapse>
               </div>
@@ -193,6 +230,7 @@ const ResourcePage = () => {
         </Grid>
       </Box>
 
+      {/* Tutorials Section */}
       <Box>
         <Typography className={classes.sectionTitle}>Tutorials</Typography>
         <Grid container spacing={4} justifyContent="center">
@@ -202,7 +240,7 @@ const ResourcePage = () => {
                 <Box display="flex" alignItems="center">
                   <img
                     className={classes.techImage}
-                    src={`${API_BASE_URL}/${tutorial.newIcon.replace(/\\/g, '/')}`}
+                    src={tutorial.newIcon}
                     alt={tutorial.name}
                   />
                   <Typography variant="h6" className={classes.techName}>
@@ -215,20 +253,67 @@ const ResourcePage = () => {
                     <ExpandMoreIcon />
                   </IconButton>
                 </Box>
-
                 <Collapse in={expandedTut === tutorial._id}>
                   <Box className={classes.collapseContent}>
                     <Typography variant="body2" color="textSecondary" gutterBottom>
                       {tutorial.description}
                     </Typography>
-                    <Button
-                      variant="contained"
-                      href={tutorial.tutorialLink}
-                      target="_blank"
-                      className={classes.button}
-                    >
-                      View Tutorial
-                    </Button>
+                    {tutorial.tutorialLink && (
+                      <Button
+                        variant="contained"
+                        href={tutorial.tutorialLink}
+                        target="_blank"
+                        className={classes.button}
+                      >
+                        View Tutorial
+                      </Button>
+                    )}
+                  </Box>
+                </Collapse>
+              </div>
+            </Grid>
+          ))}
+        </Grid>
+      </Box>
+
+      {/* Notes Section */}
+      <Box>
+        <Typography className={classes.sectionTitle}>Notes</Typography>
+        <Grid container spacing={4} justifyContent="center">
+          {notes.map((note) => (
+            <Grid item xs={12} sm={6} md={4} key={note._id}>
+              <div className={classes.itemContainer}>
+                <Box display="flex" alignItems="center">
+                  <img
+                    className={classes.techImage}
+                    src={note.newIcon}
+                    alt={note.name}
+                  />
+                  <Typography variant="h6" className={classes.techName}>
+                    {note.name}
+                  </Typography>
+                  <IconButton
+                    className={classes.expandIcon}
+                    onClick={() => handleExpandClick(note._id, 'notes')}
+                  >
+                    <ExpandMoreIcon />
+                  </IconButton>
+                </Box>
+                <Collapse in={expandedNote === note._id}>
+                  <Box className={classes.collapseContent}>
+                    <Typography variant="body2" color="textSecondary" gutterBottom>
+                      {note.description}
+                    </Typography>
+                    {note.noteLink && (
+                      <Button
+                        variant="contained"
+                        href={note.noteLink}
+                        target="_blank"
+                        className={classes.button}
+                      >
+                        View Note
+                      </Button>
+                    )}
                   </Box>
                 </Collapse>
               </div>
