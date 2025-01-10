@@ -23,6 +23,8 @@ import { useNavigate } from 'react-router-dom';
 import { API_BASE_URL } from '../config';
 
 const RegisterForm = () => {
+  const [submitting, setSubmitting] = useState(false);
+
   const [formData, setFormData] = useState({
     name: '',
     email: '',
@@ -72,7 +74,7 @@ const RegisterForm = () => {
   }, []);
 
   // --------------------------------
-  // ADDED: removeEducationField
+  // removeEducationField
   // --------------------------------
   const removeEducationField = (index) => {
     setFormData((prev) => {
@@ -83,7 +85,7 @@ const RegisterForm = () => {
   };
 
   // --------------------------------
-  // ADDED: removeExperienceField
+  // removeExperienceField
   // --------------------------------
   const removeExperienceField = (index) => {
     setFormData((prev) => {
@@ -94,7 +96,7 @@ const RegisterForm = () => {
   };
 
   // --------------------------------
-  // ADDED: removeLink
+  // removeLink
   // --------------------------------
   const removeLink = (linkType) => {
     setFormData((prev) => {
@@ -120,24 +122,32 @@ const RegisterForm = () => {
 
   const validate = () => {
     const newErrors = {};
+
+    // Basic required fields
     if (!formData.name) newErrors.name = 'Name is required';
     if (!formData.email) newErrors.email = 'Email is required';
     if (!formData.role) newErrors.role = 'Role is required';
     if (!formData.password) newErrors.password = 'Password is required';
     if (!image) newErrors.image = 'Image is required';
 
-    formData.education.forEach((edu, index) => {
-      if (!edu.institution)
+    // Validate Education
+    formData?.education?.forEach((edu, index) => {
+      if (!edu.institution) {
         newErrors[`education[${index}].institution`] = 'Institution is required';
-      if (!edu.degree)
+      }
+      if (!edu.degree) {
         newErrors[`education[${index}].degree`] = 'Degree is required';
+      }
     });
 
-    formData.experience.forEach((exp, index) => {
-      if (!exp.institution)
+    // Validate Experience
+    formData?.experience?.forEach((exp, index) => {
+      if (!exp.institution) {
         newErrors[`experience[${index}].institution`] = 'Institution is required';
-      if (!exp.degree)
+      }
+      if (!exp.degree) {
         newErrors[`experience[${index}].degree`] = 'Position is required';
+      }
     });
 
     setErrors(newErrors);
@@ -207,7 +217,9 @@ const RegisterForm = () => {
   };
 
   const handleSubmit = async () => {
-    if (!validate()) return;
+    if (!validate()) return; // If form is invalid, do nothing
+
+    setSubmitting(true);
 
     const formDataToSend = new FormData();
     formDataToSend.append('name', formData.name);
@@ -222,13 +234,20 @@ const RegisterForm = () => {
     formDataToSend.append('links', JSON.stringify(formData.links));
 
     try {
-      await axiosInstance.post(`${API_BASE_URL}/api/users/register`, formDataToSend, {
-        headers: { 'Content-Type': 'multipart/form-data' },
-      });
+      await axiosInstance.post(
+        `${API_BASE_URL}/api/users/register`,
+        formDataToSend,
+        {
+          headers: { 'Content-Type': 'multipart/form-data' },
+        }
+      );
       alert('Registration successful!');
       navigate('/login');
     } catch (error) {
       alert('Registration failed: ' + error.message);
+    } finally {
+      // Always set submitting to false, whether success or failure
+      setSubmitting(false);
     }
   };
 
@@ -244,7 +263,7 @@ const RegisterForm = () => {
         name="name"
         value={formData.name}
         onChange={handleChange}
-        error={!!errors.name}
+        error={Boolean(errors.name)}
         helperText={errors.name}
         fullWidth
         sx={{ mb: 2 }}
@@ -256,7 +275,7 @@ const RegisterForm = () => {
         name="email"
         value={formData.email}
         onChange={handleChange}
-        error={!!errors.email}
+        error={Boolean(errors.email)}
         helperText={errors.email}
         fullWidth
         sx={{ mb: 2 }}
@@ -279,7 +298,7 @@ const RegisterForm = () => {
         name="role"
         value={formData.role}
         onChange={handleChange}
-        error={!!errors.role}
+        error={Boolean(errors.role)}
         helperText={errors.role || (rolesError && 'Error loading roles')}
         fullWidth
         sx={{ mb: 2 }}
@@ -332,7 +351,7 @@ const RegisterForm = () => {
               <Button
                 variant="contained"
                 color="error"
-                onClick={() => removeEducationField(index)} // now defined
+                onClick={() => removeEducationField(index)}
               >
                 Remove
               </Button>
@@ -342,14 +361,22 @@ const RegisterForm = () => {
           <TextField
             label="Institution"
             value={entry.institution}
-            onChange={(e) => handleEducationChange(index, 'institution', e.target.value)}
+            onChange={(e) =>
+              handleEducationChange(index, 'institution', e.target.value)
+            }
+            error={Boolean(errors[`education[${index}].institution`])}
+            helperText={errors[`education[${index}].institution`]}
             fullWidth
             sx={{ mb: 1 }}
           />
           <TextField
             label="Degree"
             value={entry.degree}
-            onChange={(e) => handleEducationChange(index, 'degree', e.target.value)}
+            onChange={(e) =>
+              handleEducationChange(index, 'degree', e.target.value)
+            }
+            error={Boolean(errors[`education[${index}].degree`])}
+            helperText={errors[`education[${index}].degree`]}
             fullWidth
             sx={{ mb: 1 }}
           />
@@ -357,7 +384,9 @@ const RegisterForm = () => {
             type="date"
             label="Start Date"
             value={entry.startDate}
-            onChange={(e) => handleEducationChange(index, 'startDate', e.target.value)}
+            onChange={(e) =>
+              handleEducationChange(index, 'startDate', e.target.value)
+            }
             fullWidth
             sx={{ mb: 1 }}
             InputLabelProps={{ shrink: true }}
@@ -366,7 +395,9 @@ const RegisterForm = () => {
             type="date"
             label="End Date"
             value={entry.endDate}
-            onChange={(e) => handleEducationChange(index, 'endDate', e.target.value)}
+            onChange={(e) =>
+              handleEducationChange(index, 'endDate', e.target.value)
+            }
             fullWidth
             InputLabelProps={{ shrink: true }}
           />
@@ -398,7 +429,7 @@ const RegisterForm = () => {
               <Button
                 variant="contained"
                 color="error"
-                onClick={() => removeExperienceField(index)} // now defined
+                onClick={() => removeExperienceField(index)}
               >
                 Remove
               </Button>
@@ -408,14 +439,22 @@ const RegisterForm = () => {
           <TextField
             label="Institution"
             value={entry.institution}
-            onChange={(e) => handleExperienceChange(index, 'institution', e.target.value)}
+            onChange={(e) =>
+              handleExperienceChange(index, 'institution', e.target.value)
+            }
+            error={Boolean(errors[`experience[${index}].institution`])}
+            helperText={errors[`experience[${index}].institution`]}
             fullWidth
             sx={{ mb: 1 }}
           />
           <TextField
             label="Position"
             value={entry.degree}
-            onChange={(e) => handleExperienceChange(index, 'degree', e.target.value)}
+            onChange={(e) =>
+              handleExperienceChange(index, 'degree', e.target.value)
+            }
+            error={Boolean(errors[`experience[${index}].degree`])}
+            helperText={errors[`experience[${index}].degree`]}
             fullWidth
             sx={{ mb: 1 }}
           />
@@ -423,7 +462,9 @@ const RegisterForm = () => {
             type="date"
             label="Start Date"
             value={entry.startDate}
-            onChange={(e) => handleExperienceChange(index, 'startDate', e.target.value)}
+            onChange={(e) =>
+              handleExperienceChange(index, 'startDate', e.target.value)
+            }
             fullWidth
             sx={{ mb: 1 }}
             InputLabelProps={{ shrink: true }}
@@ -432,7 +473,9 @@ const RegisterForm = () => {
             type="date"
             label="End Date"
             value={entry.endDate}
-            onChange={(e) => handleExperienceChange(index, 'endDate', e.target.value)}
+            onChange={(e) =>
+              handleExperienceChange(index, 'endDate', e.target.value)
+            }
             fullWidth
             InputLabelProps={{ shrink: true }}
           />
@@ -453,7 +496,7 @@ const RegisterForm = () => {
             label="Link Type"
             value={currentLink.linkType}
             onChange={(e) => handleLinkChange('linkType', e.target.value)}
-            sx={{ minWidth: 200 }}
+            sx={{ minWidth: 120 }}
           >
             {availableSocialLinks.map((option) => (
               <MenuItem key={option.type} value={option.type}>
@@ -494,16 +537,30 @@ const RegisterForm = () => {
               }}
             >
               {React.createElement(
-                [LinkIcon, FacebookIcon, InstagramIcon, LinkedInIcon, GitHubIcon, YouTubeIcon, XIcon][
-                  ['Website', 'Facebook', 'Instagram', 'LinkedIn', 'GitHub', 'YouTube', 'X'].indexOf(
-                    link.linkType
-                  )
+                [
+                  LinkIcon,
+                  FacebookIcon,
+                  InstagramIcon,
+                  LinkedInIcon,
+                  GitHubIcon,
+                  YouTubeIcon,
+                  XIcon,
+                ][
+                  [
+                    'Website',
+                    'Facebook',
+                    'Instagram',
+                    'LinkedIn',
+                    'GitHub',
+                    'YouTube',
+                    'X',
+                  ].indexOf(link.linkType)
                 ]
               )}
               <Typography>{link.link}</Typography>
               <IconButton
                 size="small"
-                onClick={() => removeLink(link.linkType)} // now defined
+                onClick={() => removeLink(link.linkType)}
                 sx={{ ml: 1 }}
               >
                 <XIcon />
@@ -520,7 +577,7 @@ const RegisterForm = () => {
         type="password"
         value={formData.password}
         onChange={handleChange}
-        error={!!errors.password}
+        error={Boolean(errors.password)}
         helperText={errors.password}
         fullWidth
         sx={{ mb: 2 }}
@@ -554,9 +611,9 @@ const RegisterForm = () => {
       <Button
         variant="contained"
         onClick={handleSubmit}
-        disabled={rolesLoading || !!rolesError}
+        disabled={submitting || rolesLoading || !!rolesError}
       >
-        {rolesLoading ? <CircularProgress size={24} /> : 'Register'}
+        {(submitting || rolesLoading) ? <CircularProgress size={24} /> : 'Register'}
       </Button>
 
       {rolesError && (

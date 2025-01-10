@@ -229,7 +229,8 @@ export default function Dashboard() {
   // Error Handling
   // ------------------
   const handleError = (err) => {
-    const message = err.response?.data?.message || err.message || 'An error occurred';
+    const message = err.response?.data || err.message || 'An error occurred';
+    console.log(err);
     setError({ type: 'error', message });
   };
 
