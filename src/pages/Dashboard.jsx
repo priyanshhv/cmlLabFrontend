@@ -5,7 +5,7 @@ import {
 } from '@mui/material';
 // ADD THIS IMPORT:
 import Alert from '@mui/material/Alert';
-
+import { useNavigate } from 'react-router-dom';
 import axios from 'axios';
 import { API_BASE_URL } from '../config';
 
@@ -17,11 +17,15 @@ const CATEGORY_OPTIONS = [
   { value: 'about', label: 'About Section' },
   { value: 'technology', label: 'Technologies' },
   { value: 'tutorial', label: 'Tutorials' },
-  { value: 'notes', label: 'Notes' }
+  { value: 'notes', label: 'Notes' },
+   { value: 'profile', label: 'Update Profile' } // Added new category for profile updates
+
 ];
 const MAX_FILE_SIZE = 5 * 1024 * 1024; // 5MB
 
 export default function Dashboard() {
+  const navigate = useNavigate(); // Add this at the start of your Dashboard component
+
   const [selectedCategory, setSelectedCategory] = useState('');
   const [existingData, setExistingData] = useState(null);
   const [loading, setLoading] = useState(false);
@@ -73,6 +77,11 @@ export default function Dashboard() {
   const handleSelectCategory = async (category) => {
     setSelectedCategory(category);
     resetForm();
+
+     if (category === 'profile') {
+    navigate('/update/profile'); // Redirects user to the profile update route
+    return;
+  }
 
     // If it's a multi-doc category (role, tech, tutorial, notes), we don't fetch a single existing doc
     if (!category || isMultiDocCategory) return;

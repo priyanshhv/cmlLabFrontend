@@ -21,7 +21,8 @@ const PublicationForm = React.lazy(() => import('./components/PublicationForm'))
 const Footer = React.lazy(() => import('./components/Footer'));
 const UserDetailPage = React.lazy(() => import('./pages/UserDetailPage')); 
 const PublicationPage = React.lazy(() => import('./pages/PublicationPage')); 
-const ResourcePage = React.lazy(() => import('./pages/Resource')); // <-- new line
+const ResourcePage = React.lazy(() => import('./pages/Resource')); 
+const ProfileUpdatePage = React.lazy(() => import('./pages/ProfileUpdateForm')); // <-- new line
 
 
 const App = () => {
@@ -59,7 +60,7 @@ const App = () => {
                         <>
                             <Route path="/dashboard" element={<Dashboard />} />
                             <Route path="/users" element={<UserPage />} />
-                           
+                            <Route path="/update/profile" element={<ProfileUpdatePage />} />
                             <Route path="/add-publication" element={<PublicationForm />} />
                         </>
                     )}
