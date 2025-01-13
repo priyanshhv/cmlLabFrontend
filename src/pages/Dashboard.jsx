@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState , useEffect} from 'react';
 import {
   Typography, Box, Grid, MenuItem, Select, FormControl, InputLabel,
   Button, TextField, Avatar, Snackbar, CircularProgress
@@ -36,10 +36,36 @@ export default function Dashboard() {
   const [error, setError] = useState(null);
   const [formErrors, setFormErrors] = useState({});
   const [submitLoading, setSubmitLoading] = useState(false);
+  const [isAdmin, setIsAdmin] = useState(false);
+
 
   const token = localStorage.getItem('token');
   const isSingleDocCategory = SINGLE_DOC_CATEGORIES.includes(selectedCategory);
   const isMultiDocCategory = MULTI_DOC_CATEGORIES.includes(selectedCategory);
+
+  useEffect(() => {
+  const fetchAdminStatus = async () => {
+    try {
+      if (!token) throw new Error('Authentication required');
+      const response = await axios.get(`${API_BASE_URL}/api/isAdmin`, {
+        headers: { Authorization: `Bearer ${token}` },
+      });
+      setIsAdmin(response.data.isAdmin);
+    } catch (err) {
+      console.error(err.message);
+      setError({ type: 'error', message: 'Failed to fetch admin status' });
+    }
+  };
+
+  fetchAdminStatus();
+}, [token]);
+
+const filteredCategoryOptions = isAdmin
+  ? CATEGORY_OPTIONS
+  : CATEGORY_OPTIONS.filter(
+      (opt) => !['address', 'role', 'about', 'technology', 'tutorial', 'notes'].includes(opt.value)
+    );
+
 
   // ------------------
   // Validation Helpers
@@ -387,7 +413,7 @@ export default function Dashboard() {
               onChange={(e) => handleSelectCategory(e.target.value)}
             >
               <MenuItem value="">-- Select Category --</MenuItem>
-              {CATEGORY_OPTIONS.map((opt) => (
+              {filteredCategoryOptions.map((opt) => (
                 <MenuItem key={opt.value} value={opt.value}>
                   {opt.label}
                 </MenuItem>

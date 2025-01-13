@@ -136,9 +136,10 @@ const PublicationForm = () => {
 
   // slick slider settings
   const sliderSettings = {
-    dots: true,
+    dots: false,
     infinite: true,
     speed: 700,
+    swipeToSlide: true,
     slidesToShow: 3,   // Number of authors to show at once
     slidesToScroll: 1, // Slides to scroll per click/swipe
     arrows: true,      // Show left/right navigation arrows

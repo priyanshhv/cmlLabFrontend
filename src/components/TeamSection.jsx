@@ -65,7 +65,7 @@ const TeamSection = () => {
     const slidesToShow = users.length < 2 ? 1 : 3;  // Show 1 slide if less than 2 users, otherwise 3
 
     const settings = {
-      dots: true,
+      // dots: true,
       infinite: users.length>1,
       speed: 1200,
       cssEase: 'ease-in-out',
@@ -73,6 +73,7 @@ const TeamSection = () => {
       slidesToScroll: 1,
       autoplay: true,
       autoplaySpeed: 1000,
+      swipeToSlide: true, // Allows smooth and free swiping
       arrows: true,
       responsive: [
         {

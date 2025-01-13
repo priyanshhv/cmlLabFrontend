@@ -133,7 +133,7 @@ const PublicationsSection = () => {
                 <CardMedia
                   component="img"
                   sx={{
-                    maxHeight: 400,
+                    maxHeight: 600,
                     objectFit: 'cover',
                     width: '100%',
                     transition: 'transform 0.2s ease',

@@ -174,7 +174,7 @@ export default function PublicationsSection() {
           <Carousel
             autoPlay
             interval={6000}
-            indicators
+            indicators={false}
             swipe
             cycleNavigation
             navButtonsAlwaysVisible

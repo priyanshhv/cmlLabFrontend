@@ -111,14 +111,16 @@ const UserPage = () => {
   };
 
   const sliderSettings = {
-    dots: true,
+    dots: false,
     infinite: true,
-    speed: 700,
+    speed: 1200,
+    cssEase: 'ease-in-out',
     slidesToShow: 3,
     slidesToScroll: 1,
     autoplay: true,
-    autoplaySpeed: 4000,
+    autoplaySpeed: 1000,
     arrows: true,
+      swipeToSlide: true, // Allows smooth and free swiping,
     responsive: [
       {
         breakpoint: 960,
