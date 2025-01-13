@@ -23,6 +23,8 @@ const UserDetailPage = React.lazy(() => import('./pages/UserDetailPage'));
 const PublicationPage = React.lazy(() => import('./pages/PublicationPage')); 
 const ResourcePage = React.lazy(() => import('./pages/Resource')); 
 const ProfileUpdatePage = React.lazy(() => import('./pages/ProfileUpdateForm')); // <-- new line
+const PublicationUpdatePage = React.lazy(() => import('./pages/PublicationEditForm')); // <-- new line
+
 
 
 const App = () => {
@@ -62,6 +64,7 @@ const App = () => {
                             <Route path="/users" element={<UserPage />} />
                             <Route path="/update/profile" element={<ProfileUpdatePage />} />
                             <Route path="/add-publication" element={<PublicationForm />} />
+                            <Route path="/publication/edit/:id" element={<PublicationUpdatePage/>} />
                         </>
                     )}
                     <Route path="*" element={<NotFound/>} />
