@@ -24,7 +24,7 @@ const PublicationPage = React.lazy(() => import('./pages/PublicationPage'));
 const ResourcePage = React.lazy(() => import('./pages/Resource')); 
 const ProfileUpdatePage = React.lazy(() => import('./pages/ProfileUpdateForm')); // <-- new line
 const PublicationUpdatePage = React.lazy(() => import('./pages/PublicationEditForm')); // <-- new line
-
+const ErrorBoundary = React.lazy(() => import('./components/ErrorBoundary')); // Lazy load ErrorBoundary
 
 
 const App = () => {
@@ -58,6 +58,7 @@ const App = () => {
                      <Route path="/publication" element={<PublicationPage />} />
                      <Route path="/resource" element={<ResourcePage />} />
                     <Route path="/register" element={<RegisterForm />} />
+                    <Route path="/error" element={<ErrorBoundary />} />
                     {isLoggedIn && (
                         <>
                             <Route path="/dashboard" element={<Dashboard />} />

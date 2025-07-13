@@ -21,24 +21,52 @@ axiosInstance.interceptors.request.use(
     }
 );
 
-// Response Interceptor (Global Error Handling)
+// // Response Interceptor (Global Error Handling)
+// axiosInstance.interceptors.response.use(
+//     (response) => response,
+//     (error) => {
+//         if (!error.response) {
+//             // Network error
+//             alert('Network Error: Please check your connection.');
+//         } else if (error.response.status === 401) {
+//             alert('Session expired. Please log in again.');
+//             localStorage.removeItem('token');
+//             window.location.href = '/login'; // Redirect to login
+//         } else if (error.response.status === 403) {
+//             alert('You do not have permission to perform this action.');
+//         } else if (error.response.status === 404) {
+//             alert('The requested resource could not be found.');
+//         } else {
+//             alert(error.response.data?.message || 'An unexpected error occurred.');
+//         }
+//         return Promise.reject(error);
+//     }
+// );
+
 axiosInstance.interceptors.response.use(
     (response) => response,
     (error) => {
+        let errorMessage = 'An unexpected error occurred.';
         if (!error.response) {
-            // Network error
-            alert('Network Error: Please check your connection.');
+            // Friendly message for company-side/server issues
+            errorMessage = 'Sorry, our service is temporarily unavailable. We are working to fix this. Please try again later.';
         } else if (error.response.status === 401) {
-            alert('Session expired. Please log in again.');
+            errorMessage = 'Session expired. Please log in again.';
             localStorage.removeItem('token');
-            window.location.href = '/login'; // Redirect to login
+            window.location.href = '/login';
+            return Promise.reject(error);
         } else if (error.response.status === 403) {
-            alert('You do not have permission to perform this action.');
+            errorMessage = 'You do not have permission to perform this action.';
         } else if (error.response.status === 404) {
-            alert('The requested resource could not be found.');
+            errorMessage = 'The requested resource could not be found.';
         } else {
-            alert(error.response.data?.message || 'An unexpected error occurred.');
+            errorMessage = error.response.data?.message || errorMessage;
         }
+
+        localStorage.setItem('error_message', errorMessage);
+        localStorage.setItem('error_prev_url', window.location.pathname);
+        window.location.href = '/error';
+
         return Promise.reject(error);
     }
 );
