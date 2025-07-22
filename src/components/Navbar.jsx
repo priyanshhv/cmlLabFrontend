@@ -35,6 +35,7 @@ const Navbar = () => {
     { label: 'Users', path: '/users' },
      { label: 'Dashboard', path: '/dashboard' },
     { label: 'Add Publication', path: '/add-publication' },
+    { label: 'Add News', path: '/add-news' },
     {
       label: 'Logout',
       action: handleLogout,

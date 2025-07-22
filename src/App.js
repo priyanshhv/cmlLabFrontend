@@ -25,6 +25,8 @@ const ResourcePage = React.lazy(() => import('./pages/Resource'));
 const ProfileUpdatePage = React.lazy(() => import('./pages/ProfileUpdateForm')); // <-- new line
 const PublicationUpdatePage = React.lazy(() => import('./pages/PublicationEditForm')); // <-- new line
 const ErrorBoundary = React.lazy(() => import('./components/ErrorBoundary')); // Lazy load ErrorBoundary
+const NewsForm = React.lazy(() => import('./components/NewsForm'));
+const NewsDetailPage = React.lazy(() => import('./pages/NewsDetailPage')); // Lazy load NewsDetailPage
 
 
 const App = () => {
@@ -55,6 +57,8 @@ const App = () => {
                     <Route path="/" element={<HomePage />} />
                     <Route path="/login" element={<LoginForm />} />
                      <Route path="/users/:id" element={<UserDetailPage />} />
+                     <Route path="/users/:id" element={<UserDetailPage />} />
+                    <Route path="/news/:id" element={<NewsDetailPage />} />
                      <Route path="/publication" element={<PublicationPage />} />
                      <Route path="/resource" element={<ResourcePage />} />
                     <Route path="/register" element={<RegisterForm />} />
@@ -66,6 +70,7 @@ const App = () => {
                             <Route path="/update/profile" element={<ProfileUpdatePage />} />
                             <Route path="/add-publication" element={<PublicationForm />} />
                             <Route path="/publication/edit/:id" element={<PublicationUpdatePage/>} />
+                            <Route path="/add-news" element={<NewsForm />} />
                         </>
                     )}
                     <Route path="*" element={<NotFound/>} />

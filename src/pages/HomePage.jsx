@@ -5,6 +5,7 @@ import AboutSection from '../components/AboutSection';
 import PublicationsSection from '../components/PublicationsSection';
 import ContactForm from '../components/ContactForm';
 import TeamSection from '../components/TeamSection';
+import NewsSection from '../components/NewsSection';
 
 const HomePage = () => (
     <>
@@ -12,6 +13,7 @@ const HomePage = () => (
         <AboutSection />
         <TeamSection/>
         <PublicationsSection />
+        <NewsSection />
         <ContactForm />
     </>
 );
