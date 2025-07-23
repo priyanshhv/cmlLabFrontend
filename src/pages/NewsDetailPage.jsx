@@ -1,291 +1,6 @@
 
 
-// import React, { useEffect, useState, useCallback } from 'react';
-// import { useParams, useNavigate } from 'react-router-dom';
-// import {
-//   Box,
-//   Typography,
-//   LinearProgress,
-//   Button,
-//   Dialog,
-//   DialogActions,
-//   DialogContent,
-//   DialogContentText,
-//   DialogTitle,
-//   Skeleton,
-//   Card,
-//   useTheme,
-//   useMediaQuery,
-// } from '@mui/material';
-// import MDEditor from '@uiw/react-md-editor';
-// import axiosInstance from '../axiosInstance';
-// import { API_BASE_URL } from '../config';
-
-// // Import react-slick and its CSS
-// import Slider from "react-slick";
-// import "slick-carousel/slick/slick.css";
-// import "slick-carousel/slick/slick-theme.css";
-
-// // Helper function for relative time
-// const getRelativeTime = (date) => {
-//   const now = new Date();
-//   const past = new Date(date);
-//   const msPerMinute = 60 * 1000;
-//   const msPerHour = msPerMinute * 60;
-//   const msPerDay = msPerHour * 24;
-//   const msPerMonth = msPerDay * 30;
-//   const msPerYear = msPerDay * 365;
-
-//   const elapsed = now - past;
-
-//   if (isNaN(elapsed) || elapsed < 0) return 'just now';
-//   else if (elapsed < msPerMinute) return `${Math.floor(elapsed / 1000)}s ago`;
-//   else if (elapsed < msPerHour) return `${Math.floor(elapsed / msPerMinute)}m ago`;
-//   else if (elapsed < msPerDay) return `${Math.floor(elapsed / msPerHour)}h ago`;
-//   else if (elapsed < msPerMonth) return `${Math.floor(elapsed / msPerDay)}d ago`;
-//   else if (elapsed < msPerYear) return `${Math.floor(elapsed / msPerMonth)}mo ago`;
-//   else return `${Math.floor(elapsed / msPerYear)}y ago`;
-// };
-
-
-// const NewsDetailPage = () => {
-//   const { id } = useParams();
-//   const navigate = useNavigate();
-//   const theme = useTheme();
-//   const isMobile = useMediaQuery(theme.breakpoints.down('sm'));
-
-//   const [news, setNews] = useState(null);
-//   const [loading, setLoading] = useState(true);
-//   const [isAdmin, setIsAdmin] = useState(false);
-//   const [openDialog, setOpenDialog] = useState(false);
-
-//   // NOTE: Removed mainImage and carouselImages state
-
-//   useEffect(() => {
-//     const fetchData = async () => {
-//       setLoading(true);
-//       try {
-//         const newsResponse = await axiosInstance.get(`${API_BASE_URL}/api/news/${id}`);
-//         setNews(newsResponse.data);
-//         // NOTE: Logic to split images into main and carousel is removed.
-//       } catch (error) {
-//         navigate('/');
-//         console.error('Error fetching news:', error);
-//         if (error.response && error.response.status === 404) setNews(null);
-//       }
-
-//       try {
-//         const token = localStorage.getItem('token');
-//         if (!token) {
-//           setIsAdmin(false);
-//           return;
-//         }
-
-//         const adminResponse = await axiosInstance.get(`${API_BASE_URL}/api/isAdmin`, {
-//           headers: { Authorization: `Bearer ${token}` },
-//         });
-
-//         setIsAdmin(adminResponse.data.isAdmin);
-//       } catch (error) {
-//         console.error('Error checking admin status:', error);
-//         setIsAdmin(false);
-//       } finally {
-//         setLoading(false);
-//       }
-//     };
-
-//     fetchData();
-//   }, [id, navigate]);
-
-//   const handleDeleteClick = useCallback(() => {
-//     setOpenDialog(true);
-//   }, []);
-
-//   const handleCloseDialog = useCallback(() => {
-//     setOpenDialog(false);
-//   }, []);
-
-//   const handleConfirmDelete = useCallback(async () => {
-//     setOpenDialog(false);
-//     try {
-//       const token = localStorage.getItem('token');
-//       await axiosInstance.delete(`${API_BASE_URL}/api/news/${id}`, {
-//         headers: { Authorization: `Bearer ${token}` },
-//       });
-//       alert('News deleted successfully!');
-//       navigate('/news');
-//     } catch (error) {
-//       console.error('Error deleting news:', error);
-//       alert('Failed to delete news. You might not have permission or the news no longer exists.');
-//     }
-//   }, [id, navigate]);
-
-//   // react-slick settings for a single, slidable image card
-//   const sliderSettings = {
-//     dots: true,
-//     infinite: news?.photos?.length > 1, // Loop only if more than one image
-//     speed: 500,
-//     slidesToShow: 1, // Always show one image at a time
-//     slidesToScroll: 1,
-//     autoplay: news?.photos?.length > 1, // Autoplay if there are multiple images
-//     autoplaySpeed: 3000,
-//     arrows: !isMobile && news?.photos?.length > 1, // Show arrows on non-mobile if multiple images
-//   };
-
-//   if (loading) {
-//     return (
-//       <Box sx={{ mt: 4, px: 3 }}>
-//         <LinearProgress sx={{ mb: 2 }} />
-//         <Skeleton variant="rectangular" width="100%" height={400} sx={{ mb: 2 }} />
-//         <Skeleton variant="text" width="60%" height={50} sx={{ mb: 1 }} />
-//         <Skeleton variant="text" width="40%" height={30} sx={{ mb: 2 }} />
-//         <Skeleton variant="text" width="100%" height={150} />
-//       </Box>
-//     );
-//   }
-
-//   if (!news) {
-//     return (
-//       <Typography variant="h5" sx={{ mt: 4, textAlign: 'center', p: 3 }}>
-//         News not found.
-//       </Typography>
-//     );
-//   }
-
-//   return (
-//     <Box sx={{ py: 4, px: { xs: 2, md: 5 }, bgcolor: '#f0f2f5', minHeight: '100vh' }}>
-//       <Card
-//         sx={{
-//           maxWidth: 1000,
-//           mx: 'auto',
-//           borderRadius: 2,
-//           boxShadow: '0 4px 20px rgba(0,0,0,0.1)',
-//           overflow: 'hidden',
-//         }}
-//       >
-//         {/* MODIFIED: Unified Image Slider for all photos */}
-//         {news.photos && news.photos.length > 0 && (
-//           <Box
-//             sx={{
-//               width: '100%',
-//               // Use responsive height for a large image display
-//               height: { xs: 250, sm: 350, md: 450 },
-//               '.slick-prev:before, .slick-next:before': { color: theme.palette.text.primary },
-//               '.slick-dots li button:before': { color: theme.palette.text.secondary },
-//               '.slick-active button:before': { color: theme.palette.primary.main }
-//             }}
-//           >
-//             <Slider {...sliderSettings}>
-//               {news.photos.map((photoUrl, index) => (
-//                 <Box
-//                   key={photoUrl}
-//                   sx={{
-//                     // Ensure the slide container matches the slider's height
-//                     height: { xs: 250, sm: 350, md: 450 },
-//                     display: 'flex !important',
-//                     justifyContent: 'center !important',
-//                     alignItems: 'center !important',
-//                     backgroundColor: '#e0e0e0', // Background for letterboxing
-//                   }}
-//                 >
-//                   <img
-//                     src={photoUrl}
-//                     alt={`News image ${index + 1}`}
-//                     loading="lazy"
-//                     style={{
-//                       objectFit: 'contain', // Ensures the whole image is visible
-//                       maxWidth: '100%',
-//                       maxHeight: '100%',
-//                       width: '100%',
-//                       height: '100%',
-//                     }}
-//                   />
-//                 </Box>
-//               ))}
-//             </Slider>
-//           </Box>
-//         )}
-
-//         <Box sx={{ p: { xs: 2, sm: 3, md: 4 } }}>
-//           {/* Title */}
-//           <Typography
-//             variant="h4"
-//             component="h1"
-//             gutterBottom
-//             sx={{
-//               fontWeight: 700,
-//               color: '#333',
-//               wordBreak: 'break-word',
-//               mt: news.photos && news.photos.length > 0 ? 2 : 0, // Add margin top if images are present
-//               '@media (max-width: 600px)': { fontSize: '2rem' },
-//             }}
-//           >
-//             {news.title}
-//           </Typography>
-
-//           {/* Published Time */}
-//           <Typography variant="subtitle2" color="text.secondary" sx={{ mb: 3 }}>
-//             Published: {getRelativeTime(news.createdAt)}
-//           </Typography>
-
-//           {/* Markdown Body */}
-//           <Box sx={{ mt: 3 }} data-color-mode="light">
-//             <MDEditor.Markdown
-//               source={news.paragraph}
-//               sx={{
-//                 '& img': {
-//                   maxWidth: '100%', height: 'auto', display: 'block', margin: '16px auto',
-//                   borderRadius: '8px', objectFit: 'contain', border: '1px solid #ddd',
-//                   boxShadow: '0 1px 4px rgba(0,0,0,0.1)',
-//                 },
-//                 '& p': { lineHeight: 1.8, fontSize: '1.1rem', color: '#555' },
-//                 '& h1, & h2, & h3, & h4, & h5, & h6': { mt: '1.5em', mb: '0.8em', color: '#333' },
-//                 '& ul, & ol': { ml: '20px', color: '#555' },
-//                 '& a': { color: '#1976d2', textDecoration: 'underline' },
-//               }}
-//             />
-//           </Box>
-
-//           {/* Admin Delete Button at Bottom */}
-//           {isAdmin && (
-//             <Box sx={{ textAlign: 'right', mt: 4 }}>
-//               <Button variant="contained" color="error" onClick={handleDeleteClick}>
-//                 Delete News
-//               </Button>
-//             </Box>
-//           )}
-//         </Box>
-//       </Card>
-
-//       {/* Delete Confirmation Dialog */}
-//       <Dialog
-//         open={openDialog}
-//         onClose={handleCloseDialog}
-//         aria-labelledby="alert-dialog-title"
-//         aria-describedby="alert-dialog-description"
-//       >
-//         <DialogTitle id="alert-dialog-title">{"Confirm Deletion"}</DialogTitle>
-//         <DialogContent>
-//           <DialogContentText id="alert-dialog-description">
-//             Are you sure you want to delete this news article? This action cannot be undone.
-//           </DialogContentText>
-//         </DialogContent>
-//         <DialogActions>
-//           <Button onClick={handleCloseDialog} color="primary">
-//             Cancel
-//           </Button>
-//           <Button onClick={handleConfirmDelete} color="error" autoFocus>
-//             Delete
-//           </Button>
-//         </DialogActions>
-//       </Dialog>
-//     </Box>
-//   );
-// };
-
-// export default NewsDetailPage;
-
-import React, { useEffect, useState, useCallback, Suspense, lazy } from 'react'; // Added Suspense, lazy
+import React, { useEffect, useState, useCallback } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import {
   Box,
@@ -301,9 +16,8 @@ import {
   Card,
   useTheme,
   useMediaQuery,
-  CircularProgress, // Added CircularProgress for fallback
 } from '@mui/material';
-// Remove the direct import: import MDEditor from '@uiw/react-md-editor';
+import MDEditor from '@uiw/react-md-editor';
 import axiosInstance from '../axiosInstance';
 import { API_BASE_URL } from '../config';
 
@@ -311,12 +25,6 @@ import { API_BASE_URL } from '../config';
 import Slider from "react-slick";
 import "slick-carousel/slick/slick.css";
 import "slick-carousel/slick/slick-theme.css";
-
-// Lazily load the MDEditor component
-// This function will only be called when MDEditor.Markdown is actually rendered.
-const LazyMDEditorMarkdown = lazy(() =>
-  import('@uiw/react-md-editor').then((mod) => ({ default: mod.MDEditor.Markdown }))
-);
 
 // Helper function for relative time
 const getRelativeTime = (date) => {
@@ -335,7 +43,7 @@ const getRelativeTime = (date) => {
   else if (elapsed < msPerHour) return `${Math.floor(elapsed / msPerMinute)}m ago`;
   else if (elapsed < msPerDay) return `${Math.floor(elapsed / msPerHour)}h ago`;
   else if (elapsed < msPerMonth) return `${Math.floor(elapsed / msPerDay)}d ago`;
-  else if (elapsed < msPerYear) return `${Math.floor(elapsed / msPerYear)}y ago`;
+  else if (elapsed < msPerYear) return `${Math.floor(elapsed / msPerMonth)}mo ago`;
   else return `${Math.floor(elapsed / msPerYear)}y ago`;
 };
 
@@ -351,12 +59,15 @@ const NewsDetailPage = () => {
   const [isAdmin, setIsAdmin] = useState(false);
   const [openDialog, setOpenDialog] = useState(false);
 
+  // NOTE: Removed mainImage and carouselImages state
+
   useEffect(() => {
     const fetchData = async () => {
       setLoading(true);
       try {
         const newsResponse = await axiosInstance.get(`${API_BASE_URL}/api/news/${id}`);
         setNews(newsResponse.data);
+        // NOTE: Logic to split images into main and carousel is removed.
       } catch (error) {
         navigate('/');
         console.error('Error fetching news:', error);
@@ -519,23 +230,20 @@ const NewsDetailPage = () => {
 
           {/* Markdown Body */}
           <Box sx={{ mt: 3 }} data-color-mode="light">
-            {/* Use Suspense to wrap the lazy-loaded Markdown component */}
-            <Suspense fallback={<CircularProgress />}>
-              <LazyMDEditorMarkdown
-                source={news.paragraph}
-                sx={{
-                  '& img': {
-                    maxWidth: '100%', height: 'auto', display: 'block', margin: '16px auto',
-                    borderRadius: '8px', objectFit: 'contain', border: '1px solid #ddd',
-                    boxShadow: '0 1px 4px rgba(0,0,0,0.1)',
-                  },
-                  '& p': { lineHeight: 1.8, fontSize: '1.1rem', color: '#555' },
-                  '& h1, & h2, & h3, & h4, & h5, & h6': { mt: '1.5em', mb: '0.8em', color: '#333' },
-                  '& ul, & ol': { ml: '20px', color: '#555' },
-                  '& a': { color: '#1976d2', textDecoration: 'underline' },
-                }}
-              />
-            </Suspense>
+            <MDEditor.Markdown
+              source={news.paragraph}
+              sx={{
+                '& img': {
+                  maxWidth: '100%', height: 'auto', display: 'block', margin: '16px auto',
+                  borderRadius: '8px', objectFit: 'contain', border: '1px solid #ddd',
+                  boxShadow: '0 1px 4px rgba(0,0,0,0.1)',
+                },
+                '& p': { lineHeight: 1.8, fontSize: '1.1rem', color: '#555' },
+                '& h1, & h2, & h3, & h4, & h5, & h6': { mt: '1.5em', mb: '0.8em', color: '#333' },
+                '& ul, & ol': { ml: '20px', color: '#555' },
+                '& a': { color: '#1976d2', textDecoration: 'underline' },
+              }}
+            />
           </Box>
 
           {/* Admin Delete Button at Bottom */}
