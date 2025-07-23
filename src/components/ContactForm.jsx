@@ -150,7 +150,7 @@ const ContactForm = () => {
         </Button>
       </Box>
 
-      <Box
+      {/* <Box
         sx={{
           maxWidth: '600px',
           mx: 'auto',
@@ -197,7 +197,57 @@ const ContactForm = () => {
         >
           Submit
         </Button>
-      </Box>
+      </Box> */}
+      // ... assuming formData, handleChange, and handleSubmit are defined
+
+<Box
+  sx={{
+    maxWidth: '600px',
+    mx: 'auto',
+    display: 'grid',
+    gap: 2, // theme.spacing(2)
+    mb: 4, // theme.spacing(4)
+  }}
+>
+  <TextField
+    label="Name"
+    name="name"
+    value={formData.name}
+    onChange={handleChange}
+    required
+    fullWidth
+  />
+  <TextField
+    label="Email"
+    name="email"
+    value={formData.email}
+    onChange={handleChange}
+    required
+    fullWidth
+  />
+  <TextField
+    label="Message"
+    name="message"
+    value={formData.message}
+    onChange={handleChange}
+    required
+    multiline
+    rows={4}
+    fullWidth
+  />
+  <Button
+    variant="contained"
+    onClick={handleSubmit}
+    sx={{
+      width: 'fit-content',
+      justifySelf: 'center', // Changed from alignSelf to justifySelf
+      fontWeight: 600,
+      px: 4,
+    }}
+  >
+    Submit
+  </Button>
+</Box>
 
       <AddressModal
         addressModalOpen={addressModalOpen}
