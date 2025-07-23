@@ -198,8 +198,7 @@ const ContactForm = () => {
           Submit
         </Button>
       </Box> */}
-      // ... assuming formData, handleChange, and handleSubmit are defined
-
+      
 <Box
   sx={{
     maxWidth: '600px',
