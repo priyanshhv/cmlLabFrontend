@@ -17,7 +17,7 @@ import {
   useTheme,
   useMediaQuery,
 } from '@mui/material';
-// import MDEditor from '@uiw/react-md-editor';
+import MDEditor from '@uiw/react-md-editor';
 import axiosInstance from '../axiosInstance';
 import { API_BASE_URL } from '../config';
 
@@ -230,7 +230,7 @@ const NewsDetailPage = () => {
 
           {/* Markdown Body */}
           <Box sx={{ mt: 3 }} data-color-mode="light">
-            {/* <MDEditor.Markdown
+            <MDEditor.Markdown
               source={news.paragraph}
               sx={{
                 '& img': {
@@ -243,7 +243,7 @@ const NewsDetailPage = () => {
                 '& ul, & ol': { ml: '20px', color: '#555' },
                 '& a': { color: '#1976d2', textDecoration: 'underline' },
               }}
-            /> */}
+            />
           </Box>
 
           {/* Admin Delete Button at Bottom */}

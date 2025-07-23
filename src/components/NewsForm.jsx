@@ -9,7 +9,7 @@ import {
   Card,
   CardMedia,
 } from '@mui/material';
-// import MDEditor from '@uiw/react-md-editor'; // For markdown editing
+import MDEditor from '@uiw/react-md-editor'; // For markdown editing
 import axiosInstance from '../axiosInstance';
 import { API_BASE_URL } from '../config';
 
@@ -97,11 +97,11 @@ const NewsForm = () => {
         <Typography variant="h6" sx={{ mb: 1 }}>
           Content
         </Typography>
-        {/* <MDEditor
+        <MDEditor
           value={paragraph}
           onChange={setParagraph}
           height={300}
-        /> */}
+        />
       </Box>
 
       {/* Photo Upload */}
