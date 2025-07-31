@@ -247,13 +247,32 @@ const NewsDetailPage = () => {
           </Box>
 
           {/* Admin Delete Button at Bottom */}
-          {isAdmin && (
+          {/* {isAdmin && (
             <Box sx={{ textAlign: 'right', mt: 4 }}>
               <Button variant="contained" color="error" onClick={handleDeleteClick}>
                 Delete News
               </Button>
             </Box>
-          )}
+          )} */}
+
+          {/* Admin Action Buttons */}
+        {isAdmin && (
+          <Box sx={{ display: 'flex', justifyContent: 'center', gap: 2, mt: 4 }}>
+            {/* THIS IS THE NEW BUTTON */}
+            <Button 
+                variant="outlined" 
+                color="primary" 
+                onClick={() => navigate(`/news/edit/${id}`)}
+            >
+              Edit News
+            </Button>
+            
+            {/* YOUR EXISTING DELETE BUTTON */}
+            <Button variant="contained" color="error" onClick={handleDeleteClick}>
+              Delete News
+            </Button>
+          </Box>
+        )}
         </Box>
       </Card>
 

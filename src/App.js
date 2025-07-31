@@ -26,6 +26,7 @@ const ProfileUpdatePage = React.lazy(() => import('./pages/ProfileUpdateForm'));
 const PublicationUpdatePage = React.lazy(() => import('./pages/PublicationEditForm')); // <-- new line
 const ErrorBoundary = React.lazy(() => import('./components/ErrorBoundary')); // Lazy load ErrorBoundary
 const NewsForm = React.lazy(() => import('./components/NewsForm'));
+const NewsEditForm = React.lazy(() => import('./components/NewsEditForm'));
 const NewsDetailPage = React.lazy(() => import('./pages/NewsDetailPage')); // Lazy load NewsDetailPage
 
 
@@ -71,6 +72,7 @@ const App = () => {
                             <Route path="/add-publication" element={<PublicationForm />} />
                             <Route path="/publication/edit/:id" element={<PublicationUpdatePage/>} />
                             <Route path="/add-news" element={<NewsForm />} />
+                            <Route path="/news/edit/:id" element={<NewsEditForm />} />
                         </>
                     )}
                     <Route path="*" element={<NotFound/>} />

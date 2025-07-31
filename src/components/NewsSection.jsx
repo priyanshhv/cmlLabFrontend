@@ -347,7 +347,7 @@ const NewsSection = () => {
   };
 
   return (
-    <Box sx={{ py: 5, px: 3 }}>
+    <Box sx={{ py: 5, px: { xs: 0, md: 3 } }}>
       {/* Conditionally render "Latest News" only if there is news or if still loading */}
       {(loading || news.length > 0) && (
         <Typography variant="h4" sx={{ mb: 4, textAlign: 'center' }}>
