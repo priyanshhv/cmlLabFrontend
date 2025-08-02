@@ -367,7 +367,7 @@ const NewsSection = () => {
         news.length > 0 ? ( // Only render the slider if there's news
           <Box
             sx={{
-              maxWidth: { xs: '100%', sm: '90%', md: '80%' },
+              maxWidth: { xs: '90%', sm: '80%', md: '60%' },
               margin: '0 auto',
             }}
           >
@@ -376,7 +376,7 @@ const NewsSection = () => {
                 <Box key={item._id} sx={{ p: 1 }}>
                   <Card
                     sx={{
-                      height: 300,
+                      // height: 300,
                       position: 'relative',
                       textDecoration: 'none',
                       borderRadius: '1rem',
@@ -396,7 +396,7 @@ const NewsSection = () => {
                       sx={{
                         objectFit: 'cover',
                         width: '100%',
-                        height: '100%',
+                        maxHeight: 400,
                         transition: 'transform 0.3s',
                         '&:hover': { transform: 'scale(1.05)' }
                       }}
@@ -445,7 +445,7 @@ const NewsSection = () => {
                             overflow: 'hidden',
                             textOverflow: 'ellipsis',
                             cursor: 'pointer',
-                            transition: 'color 0.2s',
+                            transition: 'color 0.2s, text-decoration 0.2s',
                             position: 'absolute',
                             bottom: 16,
                             right: 16,
@@ -463,10 +463,10 @@ const NewsSection = () => {
                         >
                           {selectedId === item._id ? (
                             <marquee behavior="scroll" direction="left" scrollamount="5" style={{ width: '100%' }}>
-                              {item.title}
+                              {`${item.title}\u00A0→`}
                             </marquee>
                           ) : (
-                            item.title
+                            `${item.title}\u00A0→`
                           )}
                         </Typography>
                       </Link>
