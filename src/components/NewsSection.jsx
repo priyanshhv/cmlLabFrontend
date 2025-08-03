@@ -367,7 +367,7 @@ const NewsSection = () => {
         news.length > 0 ? ( // Only render the slider if there's news
           <Box
             sx={{
-              maxWidth: { xs: '90%', sm: '80%', md: '60%' },
+              maxWidth: { xs: '90%', sm: '80%', md: '70%' },
               margin: '0 auto',
             }}
           >
