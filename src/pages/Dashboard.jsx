@@ -111,7 +111,7 @@ export default function Dashboard() {
       address: ['institution', 'city', 'country'],
       role: ['roleName'],
       about: ['text'],
-      technology: ['name', 'description'],
+      technology: ['name', 'description','downloadLink'],
       tutorial: ['name', 'description', 'tutorialLink'],
       notes: ['name', 'description', 'noteLink'],
     };
