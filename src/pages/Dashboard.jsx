@@ -35,7 +35,7 @@ const CATEGORY_OPTIONS = [
   { value: 'about', label: 'About Section' },
   { value: 'technology', label: 'Technologies' },
   { value: 'tutorial', label: 'Tutorials' },
-  { value: 'notes', label: 'Notes' },
+  { value: 'notes', label: 'Teaching' },
   { value: 'profile', label: 'Update Profile' },
   // Add the new 'publications' category
   { value: 'publications', label: 'Update Publications' },
