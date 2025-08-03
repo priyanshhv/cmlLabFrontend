@@ -367,11 +367,11 @@ const NewsSection = () => {
         news.length > 0 ? ( // Only render the slider if there's news
           <Box
             sx={{
-              maxWidth: { xs: '90%', sm: '80%', md: '70%' },
+              maxWidth: { xs: '95%', sm: '90%' },
               margin: '0 auto',
             }}
           >
-            {/* <Slider {...settings}>
+            <Slider {...settings}>
               {news.map((item) => (
                 <Box key={item._id} sx={{ p: 1 }}>
                   <Card
@@ -396,7 +396,12 @@ const NewsSection = () => {
                       sx={{
                         objectFit: 'cover',
                         width: '100%',
-                        maxHeight: 400,
+                        maxHeight: {
+                        xs: 250, // Mobile devices
+                        sm: 350, // Small tablets
+                        md: 450, // Tablets and small laptops
+                        lg: 550, // Larger screens/PCs
+                      },
                         transition: 'transform 0.3s',
                         '&:hover': { transform: 'scale(1.05)' }
                       }}
@@ -409,7 +414,12 @@ const NewsSection = () => {
                         right: 0,
                         background: 'linear-gradient(transparent, rgba(0,0,0,0.8))',
                         p: 2,
-                        height: 100,
+                         // Make the overlay height responsive.
+                        height: { xs: '30%', sm: '40%', md: '50%' },
+                        minHeight: 120,
+                        display: 'flex',
+                        flexDirection: 'column',
+                        justifyContent: 'flex-end',
                       }}
                     >
                      
@@ -474,94 +484,8 @@ const NewsSection = () => {
                   </Card>
                 </Box>
               ))}
-            </Slider> */}
-
-            <Slider {...settings}>
-  {news.map((item) => (
-    <Box key={item._id} sx={{ p: 1 }}>
-      <Card
-        component={Link} // Make the entire card a link
-        to={`/news/${item._id}`}
-        sx={{
-          display: 'block', // Required for Link component behavior
-          position: 'relative',
-          textDecoration: 'none',
-          borderRadius: '1rem',
-          overflow: 'hidden',
-          transition: 'transform 0.3s, box-shadow 0.3s',
-          '&:hover': {
-            transform: 'translateY(-4px)',
-            boxShadow: '0 4px 20px rgba(0,0,0,0.2)',
-          },
-        }}
-      >
-        <CardMedia
-          component="img"
-          image={item.photos[0] || '/default-news-image.jpg'}
-          alt={item.title}
-          sx={{
-            objectFit: 'cover',
-            width: '100%',
-            // MODIFIED: Use a responsive, fixed height for the image
-            height: { xs: 180, sm: 200, md: 220 }, 
-            transition: 'transform 0.3s',
-            '.MuiCard-root:hover &': { // Apply scale on parent hover
-              transform: 'scale(1.05)',
-            },
-          }}
-        />
-        <Box
-          sx={{
-            position: 'absolute',
-            bottom: 0,
-            left: 0,
-            right: 0,
-            background: 'linear-gradient(transparent, rgba(0,0,0,0.8))',
-            p: 2,
-            // RECOMMENDED: Use Flexbox for robust alignment
-            display: 'flex',
-            alignItems: 'flex-end',
-            justifyContent: 'space-between',
-            color: 'white',
-          }}
-        >
-          {/* Time on the left */}
-          <Typography
-            variant="caption"
-            sx={{
-              color: 'rgba(255,255,255,0.8)',
-              fontWeight: 500,
-              flexShrink: 0, // Prevent time from shrinking
-              mr: 1, // Add margin to separate from title
-            }}
-          >
-            {getRelativeTime(item.createdAt)}
-          </Typography>
-
-          {/* Title on the right */}
-          <Typography
-            variant="h6"
-            sx={{
-              textAlign: 'right',
-              fontWeight: 600,
-              fontSize: '1rem',
-              lineHeight: 1.3,
-              // Allow text to wrap if needed, but hide overflow
-              whiteSpace: 'normal',
-              overflow: 'hidden',
-              textOverflow: 'ellipsis',
-              display: '-webkit-box',
-              WebkitLineClamp: 2, // Limit to 2 lines
-              WebkitBoxOrient: 'vertical',
-            }}
-          >
-            {item.title}
-          </Typography>
-        </Box>
-      </Card>
-    </Box>
-  ))}
-</Slider>
+            </Slider>
+          
 
           </Box>
         ) : (
