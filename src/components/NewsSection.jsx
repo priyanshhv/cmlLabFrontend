@@ -332,17 +332,23 @@ const NewsSection = () => {
     arrows: true,
     responsive: [
       {
-        breakpoint: 960,
-        settings: {
-          slidesToShow: 2,
-        },
+      breakpoint: 1200, // Adjust breakpoint for larger tablets/laptops
+      settings: {
+        slidesToShow: 2, // Show 2 items
       },
-      {
-        breakpoint: 600,
-        settings: {
-          slidesToShow: 1,
-        },
+    },
+    {
+      breakpoint: 900, // Adjust breakpoint for tablets
+      settings: {
+        slidesToShow: 1, // Show 1 item
       },
+    },
+    {
+      breakpoint: 600, // Mobile devices
+      settings: {
+        slidesToShow: 1, // Show 1 item
+      },
+    },
     ],
   };
 
@@ -367,7 +373,7 @@ const NewsSection = () => {
         news.length > 0 ? ( // Only render the slider if there's news
           <Box
             sx={{
-              maxWidth: { xs: '95%', sm: '90%' },
+              maxWidth: '90%',
               margin: '0 auto',
             }}
           >
