@@ -414,12 +414,7 @@ const NewsSection = () => {
                         right: 0,
                         background: 'linear-gradient(transparent, rgba(0,0,0,0.8))',
                         p: 2,
-                         // Make the overlay height responsive.
-                        height: { xs: '30%', sm: '40%', md: '50%' },
-                        minHeight: 120,
-                        display: 'flex',
-                        flexDirection: 'column',
-                        justifyContent: 'flex-end',
+                        height: 100,
                       }}
                     >
                      
